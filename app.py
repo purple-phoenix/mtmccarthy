@@ -37,7 +37,21 @@ def load_blog_posts():
                         metadata[key.strip()] = value.strip().strip('"\'')
                 
                 metadata['slug'] = os.path.splitext(os.path.basename(file_path))[0]
-                metadata['body'] = markdown.markdown(body, extensions=['fenced_code', 'tables'])
+                # Configure markdown with extensions
+                md = markdown.Markdown(extensions=[
+                    'fenced_code',
+                    'tables',
+                    'codehilite',
+                    'nl2br',
+                    'sane_lists'
+                ], extension_configs={
+                    'codehilite': {
+                        'css_class': 'codehilite',
+                        'use_pygments': True,
+                        'noclasses': False
+                    }
+                })
+                metadata['body'] = md.convert(body)
                 metadata['date'] = datetime.strptime(metadata.get('date', '2024-01-01'), '%Y-%m-%d')
                 posts.append(metadata)
     
