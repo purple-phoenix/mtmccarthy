@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Post Header -->
+<section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-4">
+            <a href="/blog" class="text-purple-200 hover:text-white transition-colors">
+                ← Back to Blog
+            </a>
+        </div>
+        <div class="flex items-center text-sm text-gray-200 mb-4">
+            <i class="far fa-calendar mr-2"></i>
+            <span>{{ post.date.strftime('%B %d, %Y') }}</span>
+            {% if post.category %}
+            <span class="ml-4 px-3 py-1 bg-white bg-opacity-20 rounded-full">{{ post.category }}</span>
+            {% endif %}
+            {% if post.read_time %}
+            <span class="ml-4">
+                <i class="far fa-clock mr-1"></i>{{ post.read_time }} min read
+            </span>
+            {% endif %}
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ post.title }}</h1>
+        {% if post.excerpt %}
+        <p class="text-xl text-gray-100">{{ post.excerpt }}</p>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Post Content -->
+<article class="py-12 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-purple-600 prose-strong:text-gray-900 prose-code:text-purple-600 prose-pre:bg-gray-900 prose-blockquote:border-purple-500">
+            {{ post.body|safe }}
+        </div>
+    </div>
+</article>
+
+<!-- Navigation -->
+<div class="bg-gray-50 py-8 border-t border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-6">
+            {% if prev_post %}
+            <a href="/blog/{{ prev_post.slug }}" class="block bg-white rounded-lg p-6 hover-lift border border-gray-200">
+                <div class="text-sm text-purple-600 mb-2 font-semibold">← Previous Post</div>
+                <h3 class="text-lg font-bold text-gray-900">{{ prev_post.title }}</h3>
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+            {% if next_post %}
+            <a href="/blog/{{ next_post.slug }}" class="block bg-white rounded-lg p-6 hover-lift border border-gray-200 text-right md:text-left">
+                <div class="text-sm text-purple-600 mb-2 font-semibold">Next Post →</div>
+                <h3 class="text-lg font-bold text-gray-900">{{ next_post.title }}</h3>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Related Posts or CTA -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4 gradient-text">Enjoyed this post?</h2>
+        <p class="text-gray-600 mb-8">Check out more articles on my blog or explore my projects.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/blog" class="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+                View All Posts
+            </a>
+            <a href="/projects" class="bg-gray-100 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors hover-lift">
+                See My Projects
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

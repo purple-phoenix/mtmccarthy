@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20 md:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div class="mb-8 flex justify-center">
+                <div class="relative">
+                    <img src="{{ url_for('static', filename='images/profile.jpg') }}" 
+                         alt="Matt" 
+                         class="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-white shadow-2xl"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white shadow-2xl bg-gradient-to-br from-yellow-300 to-pink-300 flex items-center justify-center text-white font-bold text-5xl md:text-6xl" style="display: none;">
+                        MM
+                    </div>
+                </div>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+                Hi, I'm <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-300">Matt</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 text-gray-100 max-w-3xl mx-auto">
+                Developer, Creator, and Problem Solver passionate about building innovative solutions
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/projects" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors hover-lift">
+                    View My Work
+                </a>
+                <a href="/resume" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-colors">
+                    See My Resume
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Preview -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4 gradient-text">About Me</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Welcome to my personal website! I'm a passionate developer who loves creating 
+                innovative solutions and sharing knowledge through writing and open-source projects.
+            </p>
+        </div>
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 hover-lift">
+                <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                    I specialize in building robust, scalable applications and enjoy exploring 
+                    new technologies. Through this website, I share my projects, write about 
+                    topics I'm passionate about, and showcase my professional journey.
+                </p>
+                <a href="/about" class="inline-block text-purple-600 font-semibold hover:underline">
+                    Learn more about me →
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider my-16"></div>
+
+<!-- Featured Projects -->
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4 gradient-text">Featured Projects</h2>
+            <p class="text-gray-600">Some of my recent work and creations</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for project in projects[:3] %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift">
+                <div class="h-48 bg-gradient-to-br from-purple-400 to-blue-500"></div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2 text-gray-900">{{ project.title }}</h3>
+                    <p class="text-gray-600 mb-4">{{ project.description }}</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% for tag in project.tags[:3] %}
+                        <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="flex gap-4">
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" target="_blank" class="text-gray-600 hover:text-purple-600">
+                            <i class="fab fa-github"></i> Code
+                        </a>
+                        {% endif %}
+                        {% if project.demo_url %}
+                        <a href="{{ project.demo_url }}" target="_blank" class="text-gray-600 hover:text-purple-600">
+                            <i class="fas fa-external-link-alt"></i> Demo
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-12">
+            <a href="/projects" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+                View All Projects
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider my-16"></div>
+
+<!-- Latest Blog Posts -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4 gradient-text">Latest from the Blog</h2>
+            <p class="text-gray-600">Thoughts, tutorials, and insights</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for post in posts %}
+            <article class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
+                <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500"></div>
+                <div class="p-6">
+                    <div class="text-sm text-gray-500 mb-2">{{ post.date.strftime('%B %d, %Y') }}</div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900">
+                        <a href="/blog/{{ post.slug }}" class="hover:text-purple-600 transition-colors">
+                            {{ post.title }}
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 mb-4">{{ post.excerpt if post.excerpt else 'Read more...' }}</p>
+                    <a href="/blog/{{ post.slug }}" class="text-purple-600 font-semibold hover:underline">
+                        Read More →
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% if posts %}
+        <div class="text-center mt-12">
+            <a href="/blog" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+                Read All Posts
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl font-bold mb-4">Let's Work Together</h2>
+        <p class="text-xl text-gray-100 mb-8">
+            Have a project in mind or want to collaborate? I'd love to hear from you!
+        </p>
+        <a href="/about" class="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors hover-lift">
+            Get In Touch
+        </a>
+    </div>
+</section>
+{% endblock %}
+

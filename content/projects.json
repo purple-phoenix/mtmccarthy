@@ -1,0 +1,76 @@
+[
+  {
+    "title": "Personal Website",
+    "description": "A modern, responsive personal website built with Flask and Tailwind CSS featuring blog, projects showcase, and interactive resume.",
+    "tags": ["Python", "Flask", "Tailwind CSS", "Web Development"],
+    "status": "Active",
+    "featured": true,
+    "github_url": "https://github.com/username/personal-website",
+    "demo_url": "https://mattmccarthy.dev",
+    "highlights": [
+      "Markdown-based blog system",
+      "Responsive design with Tailwind CSS",
+      "Interactive resume with timeline view",
+      "Projects showcase with filtering"
+    ]
+  },
+  {
+    "title": "Task Management API",
+    "description": "A RESTful API for task management built with Flask and PostgreSQL. Features JWT authentication, CRUD operations, and task categorization.",
+    "tags": ["Python", "Flask", "PostgreSQL", "REST API", "JWT"],
+    "status": "Complete",
+    "featured": true,
+    "github_url": "https://github.com/username/task-api",
+    "demo_url": "https://api.example.com",
+    "highlights": [
+      "JWT-based authentication",
+      "RESTful API design",
+      "Database optimization",
+      "Comprehensive test coverage"
+    ]
+  },
+  {
+    "title": "E-Commerce Platform",
+    "description": "Full-stack e-commerce platform with user authentication, product catalog, shopping cart, and payment integration.",
+    "tags": ["Python", "Django", "React", "Stripe", "PostgreSQL"],
+    "status": "Active",
+    "featured": false,
+    "github_url": "https://github.com/username/ecommerce",
+    "demo_url": "https://shop.example.com",
+    "highlights": [
+      "Payment processing with Stripe",
+      "Real-time inventory management",
+      "User authentication and authorization",
+      "Responsive mobile design"
+    ]
+  },
+  {
+    "title": "Data Visualization Dashboard",
+    "description": "Interactive dashboard for visualizing data with charts, graphs, and real-time updates. Built with React and D3.js.",
+    "tags": ["JavaScript", "React", "D3.js", "Data Visualization"],
+    "status": "Complete",
+    "featured": false,
+    "github_url": "https://github.com/username/data-dashboard",
+    "highlights": [
+      "Real-time data updates",
+      "Interactive charts and graphs",
+      "Export functionality",
+      "Customizable visualizations"
+    ]
+  },
+  {
+    "title": "Machine Learning Model API",
+    "description": "RESTful API serving machine learning models for predictions. Includes model versioning, batch processing, and monitoring.",
+    "tags": ["Python", "FastAPI", "TensorFlow", "Docker", "AWS"],
+    "status": "Active",
+    "featured": true,
+    "github_url": "https://github.com/username/ml-api",
+    "highlights": [
+      "Model versioning system",
+      "Batch prediction support",
+      "Performance monitoring",
+      "Docker containerization"
+    ]
+  }
+]
+

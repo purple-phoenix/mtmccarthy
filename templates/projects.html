@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-5xl font-bold mb-6">My Projects</h1>
+        <p class="text-xl text-gray-100">A collection of my work, side projects, and open-source contributions</p>
+    </div>
+</section>
+
+<!-- Projects Grid -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if projects %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for project in projects %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
+                <div class="h-64 bg-gradient-to-br from-purple-400 via-blue-500 to-indigo-600 relative">
+                    {% if project.image_url %}
+                    <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
+                    {% endif %}
+                    <div class="absolute top-4 right-4">
+                        {% if project.featured %}
+                        <span class="px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">Featured</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 class="text-2xl font-bold text-gray-900">{{ project.title }}</h3>
+                        {% if project.status %}
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">
+                            {{ project.status }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-600 mb-4">{{ project.description }}</p>
+                    
+                    {% if project.tags %}
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% for tag in project.tags %}
+                        <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if project.highlights %}
+                    <ul class="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
+                        {% for highlight in project.highlights[:3] %}
+                        <li>{{ highlight }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    <div class="flex gap-4 pt-4 border-t border-gray-200">
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" target="_blank" class="flex items-center text-gray-600 hover:text-purple-600 transition-colors">
+                            <i class="fab fa-github mr-2"></i>
+                            <span>Code</span>
+                        </a>
+                        {% endif %}
+                        {% if project.demo_url %}
+                        <a href="{{ project.demo_url }}" target="_blank" class="flex items-center text-gray-600 hover:text-purple-600 transition-colors">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            <span>Demo</span>
+                        </a>
+                        {% endif %}
+                        {% if project.blog_url %}
+                        <a href="{{ project.blog_url }}" class="flex items-center text-gray-600 hover:text-purple-600 transition-colors">
+                            <i class="fas fa-book mr-2"></i>
+                            <span>Article</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-20">
+            <div class="text-gray-400 mb-4">
+                <i class="fas fa-folder-open text-6xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-700 mb-2">No projects yet</h2>
+            <p class="text-gray-500">Projects will appear here once added!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-purple-50 to-blue-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4 gradient-text">Interested in Collaborating?</h2>
+        <p class="text-gray-600 mb-8">I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions.</p>
+        <a href="/about" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+            Get In Touch
+        </a>
+    </div>
+</section>
+{% endblock %}
+
