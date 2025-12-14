@@ -1,12 +1,32 @@
 [
   {
-    "title": "Personal Website",
+    "title": "Astrology Insights",
+    "description": "A full-featured web application for generating detailed astrological birth charts with AI-powered interpretations, interactive chat, and synastry analysis. Built with Flask, PostgreSQL, and integrated with OpenAI/Anthropic for personalized chart readings.",
+    "tags": ["Python", "Flask", "PostgreSQL", "OpenAI", "Stripe", "OAuth", "API Integration"],
+    "status": "Active",
+    "featured": true,
+    "demo_url": "https://myastrologyinsights.com",
+    "image_url": "/static/images/astrology-insights-feature.png",
+    "highlights": [
+      "Interactive birth chart generation with Kerykeion API",
+      "AI-powered chart interpretations using GPT-4/Claude",
+      "Interactive chat for asking questions about charts",
+      "Synastry reports for relationship analysis",
+      "Google OAuth authentication",
+      "Stripe payment integration for premium features",
+      "PostgreSQL database for chart storage and chat history",
+      "Admin dashboard for user management"
+    ]
+  },
+  {
+    "title": "mattmccarthy.dev",
     "description": "A modern, responsive personal website built with Flask and Tailwind CSS featuring blog, projects showcase, and interactive resume.",
     "tags": ["Python", "Flask", "Tailwind CSS", "Web Development"],
     "status": "Active",
     "featured": true,
     "github_url": "https://github.com/username/personal-website",
     "demo_url": "https://mattmccarthy.dev",
+    "image_url": "/static/images/personal-website-feature.png",
     "highlights": [
       "Markdown-based blog system",
       "Responsive design with Tailwind CSS",
@@ -15,61 +35,20 @@
     ]
   },
   {
-    "title": "Task Management API",
-    "description": "A RESTful API for task management built with Flask and PostgreSQL. Features JWT authentication, CRUD operations, and task categorization.",
-    "tags": ["Python", "Flask", "PostgreSQL", "REST API", "JWT"],
-    "status": "Complete",
-    "featured": true,
-    "github_url": "https://github.com/username/task-api",
-    "demo_url": "https://api.example.com",
-    "highlights": [
-      "JWT-based authentication",
-      "RESTful API design",
-      "Database optimization",
-      "Comprehensive test coverage"
-    ]
-  },
-  {
-    "title": "E-Commerce Platform",
-    "description": "Full-stack e-commerce platform with user authentication, product catalog, shopping cart, and payment integration.",
-    "tags": ["Python", "Django", "React", "Stripe", "PostgreSQL"],
-    "status": "Active",
-    "featured": false,
-    "github_url": "https://github.com/username/ecommerce",
-    "demo_url": "https://shop.example.com",
-    "highlights": [
-      "Payment processing with Stripe",
-      "Real-time inventory management",
-      "User authentication and authorization",
-      "Responsive mobile design"
-    ]
-  },
-  {
-    "title": "Data Visualization Dashboard",
-    "description": "Interactive dashboard for visualizing data with charts, graphs, and real-time updates. Built with React and D3.js.",
-    "tags": ["JavaScript", "React", "D3.js", "Data Visualization"],
-    "status": "Complete",
-    "featured": false,
-    "github_url": "https://github.com/username/data-dashboard",
-    "highlights": [
-      "Real-time data updates",
-      "Interactive charts and graphs",
-      "Export functionality",
-      "Customizable visualizations"
-    ]
-  },
-  {
-    "title": "Machine Learning Model API",
-    "description": "RESTful API serving machine learning models for predictions. Includes model versioning, batch processing, and monitoring.",
-    "tags": ["Python", "FastAPI", "TensorFlow", "Docker", "AWS"],
+    "title": "Thrive Beyond Coaching",
+    "description": "A modern, responsive website for Thrive Beyond Coaching LLC - dynamic coaching for cancer survivors and their loved ones. Built with Next.js, TypeScript, and Tailwind CSS with a warm, supportive design.",
+    "tags": ["Next.js", "TypeScript", "React", "Tailwind CSS", "Web Development"],
     "status": "Active",
     "featured": true,
-    "github_url": "https://github.com/username/ml-api",
+    "demo_url": "https://thrive-beyond-coaching.com",
+    "image_url": "/static/images/thrive-beyond-coaching-feature.png",
     "highlights": [
-      "Model versioning system",
-      "Batch prediction support",
-      "Performance monitoring",
-      "Docker containerization"
+      "Next.js 14 with App Router and TypeScript",
+      "Responsive design with warm, supportive earthy/nature theme",
+      "Multiple pages: Home, About, Offerings, Shop, and Contact",
+      "Contact form integration with Formspree",
+      "Playwright testing suite for quality assurance",
+      "Production deployment with optimized performance"
     ]
   }
 ]
