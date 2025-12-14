@@ -68,6 +68,12 @@
                             <span>Demo</span>
                         </a>
                         {% endif %}
+                        {% if project.paper_url %}
+                        <a href="{{ project.paper_url }}" target="_blank" class="flex items-center text-gray-600 hover:text-purple-600 transition-colors">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            <span>Paper</span>
+                        </a>
+                        {% endif %}
                         {% if project.blog_url %}
                         <a href="{{ project.blog_url }}" class="flex items-center text-gray-600 hover:text-purple-600 transition-colors">
                             <i class="fas fa-book mr-2"></i>
@@ -96,7 +102,7 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl font-bold mb-4 gradient-text">Interested in Collaborating?</h2>
         <p class="text-gray-600 mb-8">I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions.</p>
-        <a href="/about" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+        <a href="/about#get-in-touch" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
             Get In Touch
         </a>
     </div>

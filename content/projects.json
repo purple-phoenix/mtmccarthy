@@ -1,5 +1,25 @@
 [
   {
+    "title": "LSTM Stock Price Prediction",
+    "description": "A neural network-based stock price prediction system using Long Short-Term Memory (LSTM) networks. Built as a final project for CS 682 Neural Networks course at UMass Amherst. Implements a multi-layer LSTM architecture with dropout regularization, layer normalization, and early stopping for predicting daily stock closing prices.",
+    "tags": ["Python", "TensorFlow", "Keras", "LSTM", "Neural Networks", "Machine Learning", "Time Series"],
+    "status": "Complete",
+    "featured": true,
+    "github_url": "https://github.com/purple-phoenix/lstm-stock-trader",
+    "paper_url": "https://github.com/purple-phoenix/lstm-stock-trader/blob/main/Final_Project_Paper.pdf",
+    "image_url": "/static/images/lstm-stock-prediction-feature.png",
+    "highlights": [
+      "Multi-layer LSTM architecture with 4 LSTM layers and dropout regularization",
+      "Custom PriceClassifier class for stock price prediction and evaluation",
+      "Train/validation/test split with temporal data handling",
+      "Early stopping callback to prevent overfitting",
+      "Visualization of predicted vs actual stock prices",
+      "Mean squared error evaluation metrics",
+      "Support for layer normalization and configurable hyperparameters",
+      "Jupyter notebook implementation with comprehensive analysis"
+    ]
+  },
+  {
     "title": "Astrology Insights",
     "description": "A full-featured web application for generating detailed astrological birth charts with AI-powered interpretations, interactive chat, and synastry analysis. Built with Flask, PostgreSQL, and integrated with OpenAI/Anthropic for personalized chart readings.",
     "tags": ["Python", "Flask", "PostgreSQL", "OpenAI", "Stripe", "OAuth", "API Integration"],

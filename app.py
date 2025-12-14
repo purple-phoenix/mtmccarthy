@@ -56,7 +56,8 @@ def load_projects():
 @app.route('/')
 def index():
     posts = load_blog_posts()[:3]  # Latest 3 posts
-    projects = load_projects()[:3]  # Latest 3 projects
+    all_projects = load_projects()
+    projects = [p for p in all_projects if p.get('featured', False)]  # All featured projects
     return render_template('index.html', posts=posts, projects=projects)
 
 @app.route('/about')
