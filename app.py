@@ -107,6 +107,18 @@ def projects():
 def resume():
     return render_template('resume.html')
 
+@app.route('/chess')
+def chess():
+    return render_template('chess.html')
+
+@app.route('/jiu-jitsu')
+def jiu_jitsu():
+    return render_template('jiu-jitsu.html')
+
+@app.route('/strength-training')
+def strength_training():
+    return render_template('strength-training.html')
+
 if __name__ == '__main__':
     # Create necessary directories
     os.makedirs(BLOG_DIR, exist_ok=True)

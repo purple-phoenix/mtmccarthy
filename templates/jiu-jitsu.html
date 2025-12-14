@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Brazilian Jiu Jitsu - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="mb-8 flex justify-center">
+            <i class="fas fa-fist-raised text-6xl md:text-8xl text-purple-200"></i>
+        </div>
+        <h1 class="text-5xl font-bold mb-6">Brazilian Jiu Jitsu</h1>
+        <p class="text-xl text-gray-100">Problem-solving under pressure, technical precision, and the importance of fundamentals</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-lg max-w-none">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-4 gradient-text">Why Brazilian Jiu Jitsu?</h2>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    Brazilian Jiu Jitsu is more than a martial art—it's a moving meditation that teaches problem-solving 
+                    under pressure, technical precision, and the importance of fundamentals. What draws me to BJJ is how 
+                    it challenges both body and mind in equal measure.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    On the mat, there's no hiding from mistakes. Every roll is immediate feedback on your technique, 
+                    positioning, and decision-making. This direct, honest feedback loop is something I value deeply, 
+                    and it's taught me to embrace discomfort as a path to growth.
+                </p>
+            </div>
+
+            <!-- What I'm Learning -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">What BJJ Teaches Me</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-purple-600 mb-4">
+                            <i class="fas fa-cogs text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Technical Precision</h3>
+                        <p class="text-gray-600">
+                            Small details make the difference between a technique working and failing. The same attention 
+                            to detail that makes a submission effective is what makes code reliable and maintainable.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-blue-600 mb-4">
+                            <i class="fas fa-lightbulb text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Problem-Solving Under Pressure</h3>
+                        <p class="text-gray-600">
+                            When someone is trying to submit you, you have to think clearly and act decisively. This 
+                            ability to problem-solve under pressure translates directly to debugging production issues 
+                            and handling system failures.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-indigo-600 mb-4">
+                            <i class="fas fa-layer-group text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">The Importance of Fundamentals</h3>
+                        <p class="text-gray-600">
+                            Advanced techniques are built on solid fundamentals. Without a strong base of basic positions, 
+                            escapes, and submissions, nothing else works. This mirrors how solid engineering fundamentals 
+                            enable more complex systems.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-pink-600 mb-4">
+                            <i class="fas fa-heart text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Humility & Growth Mindset</h3>
+                        <p class="text-gray-600">
+                            BJJ is humbling. You'll get tapped by people smaller, weaker, or less experienced than you. 
+                            This constant reminder that there's always more to learn keeps me grounded and open to feedback.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection to Software Engineering -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">BJJ & Software Engineering</h2>
+                <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100">
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        The lessons from the mat apply directly to my work:
+                    </p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
+                        <li><strong>Position before submission:</strong> In BJJ, you establish position before attempting 
+                            a submission. In software, you build solid foundations before adding complex features.</li>
+                        <li><strong>Efficiency over strength:</strong> Technique beats strength in BJJ. In software, 
+                            elegant solutions beat brute force approaches.</li>
+                        <li><strong>Defense first:</strong> Good defense prevents bad situations from getting worse. 
+                            In software, defensive programming and error handling prevent small issues from becoming 
+                            major problems.</li>
+                        <li><strong>Chain reactions:</strong> In BJJ, one technique sets up the next. In software, 
+                            well-designed systems have components that work together seamlessly.</li>
+                        <li><strong>Pressure testing:</strong> Rolling with a resisting opponent tests your technique 
+                            in real conditions. Testing software under realistic load reveals weaknesses that don't 
+                            show up in ideal conditions.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Training Philosophy -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">My Training Philosophy</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Consistency Over Intensity</h3>
+                        <p class="text-gray-600">
+                            Regular training, even if shorter sessions, beats sporadic intense training. The same principle 
+                            applies to code quality—consistent good practices beat occasional perfectionism.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Focus on Fundamentals</h3>
+                        <p class="text-gray-600">
+                            I spend significant time drilling basics: guard retention, escapes, and fundamental submissions. 
+                            These are the building blocks that make everything else possible.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Learn from Everyone</h3>
+                        <p class="text-gray-600">
+                            Every training partner has something to teach, whether they're more or less experienced. 
+                            This openness to learning from anyone is valuable in software engineering too.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Mental Aspect -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">The Mental Game</h2>
+                <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100">
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Beyond the physical techniques, BJJ is a mental discipline. Staying calm when you're in a bad 
+                        position, thinking several moves ahead, and maintaining focus throughout a roll—these mental 
+                        skills are just as important as the physical techniques.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        This mental training helps me stay composed when debugging complex issues, think clearly under 
+                        pressure during incidents, and maintain focus during long coding sessions. The mat is a 
+                        laboratory for developing mental resilience.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-purple-50 to-blue-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4 gradient-text">Interested in BJJ?</h2>
+        <p class="text-gray-600 mb-8">Brazilian Jiu Jitsu is a journey of continuous learning, both on and off the mat.</p>
+        <a href="/about" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+            Back to About
+        </a>
+    </div>
+</section>
+{% endblock %}

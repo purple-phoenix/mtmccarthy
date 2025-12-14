@@ -41,6 +41,14 @@
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(102, 126, 234, 0.3), transparent);
         }
+        /* Interest card links */
+        a.bg-white {
+            text-decoration: none;
+            color: inherit;
+        }
+        a.bg-white:hover {
+            text-decoration: none;
+        }
         /* Blog Content Styling */
         .blog-content {
             font-size: 1.125rem;
@@ -290,6 +298,25 @@
                 <div class="hidden md:flex space-x-8">
                     <a href="/" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">Home</a>
                     <a href="/about" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">About</a>
+                    <div class="relative group">
+                        <button class="text-gray-700 hover:text-purple-600 transition-colors font-medium flex items-center">
+                            Interests
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <a href="/chess" class="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                    <i class="fas fa-chess mr-2"></i>Chess
+                                </a>
+                                <a href="/jiu-jitsu" class="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                    <i class="fas fa-fist-raised mr-2"></i>Jiu Jitsu
+                                </a>
+                                <a href="/strength-training" class="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                    <i class="fas fa-dumbbell mr-2"></i>Strength Training
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <a href="/blog" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">Blog</a>
                     <a href="/projects" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">Projects</a>
                     <a href="/resume" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">Resume</a>
@@ -304,6 +331,20 @@
             <div class="px-4 py-4 space-y-3">
                 <a href="/" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">Home</a>
                 <a href="/about" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">About</a>
+                <div class="pl-2">
+                    <div class="text-gray-500 text-sm font-semibold mb-2">Interests</div>
+                    <div class="pl-4 space-y-2">
+                        <a href="/chess" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">
+                            <i class="fas fa-chess mr-2"></i>Chess
+                        </a>
+                        <a href="/jiu-jitsu" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">
+                            <i class="fas fa-fist-raised mr-2"></i>Jiu Jitsu
+                        </a>
+                        <a href="/strength-training" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">
+                            <i class="fas fa-dumbbell mr-2"></i>Strength Training
+                        </a>
+                    </div>
+                </div>
                 <a href="/blog" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">Blog</a>
                 <a href="/projects" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">Projects</a>
                 <a href="/resume" class="block text-gray-700 hover:text-purple-600 transition-colors font-medium">Resume</a>

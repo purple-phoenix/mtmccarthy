@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Chess - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="mb-8 flex justify-center">
+            <i class="fas fa-chess text-6xl md:text-8xl text-purple-200"></i>
+        </div>
+        <h1 class="text-5xl font-bold mb-6">Chess</h1>
+        <p class="text-xl text-gray-100">Strategic depth, pattern recognition, and the art of long-term thinking</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-lg max-w-none">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-4 gradient-text">Why Chess?</h2>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    Chess has been a constant companion in my life, offering a unique blend of strategic thinking, 
+                    pattern recognition, and mental discipline. What draws me to the game isn't just the competition—it's 
+                    the way chess mirrors the challenges I face in software engineering and problem-solving.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    Every game is a lesson in planning ahead, adapting to unexpected situations, and learning from mistakes. 
+                    The same principles that make a strong chess player—patience, calculation, and strategic vision—are 
+                    directly applicable to building reliable software systems.
+                </p>
+            </div>
+
+            <!-- What I'm Learning -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">What I'm Learning</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-purple-600 mb-4">
+                            <i class="fas fa-brain text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Pattern Recognition</h3>
+                        <p class="text-gray-600">
+                            Recognizing tactical patterns, opening structures, and endgame techniques. The more positions 
+                            I study, the faster I can identify key patterns in new situations.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-blue-600 mb-4">
+                            <i class="fas fa-route text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Calculation & Planning</h3>
+                        <p class="text-gray-600">
+                            Calculating variations, evaluating positions, and building long-term plans. These skills 
+                            translate directly to thinking through complex software architectures and debugging strategies.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-indigo-600 mb-4">
+                            <i class="fas fa-book text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Study & Analysis</h3>
+                        <p class="text-gray-600">
+                            Analyzing master games, studying openings, and reviewing my own games. The process of 
+                            learning from others and reflecting on my play is similar to code reviews and learning 
+                            from experienced engineers.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <div class="text-pink-600 mb-4">
+                            <i class="fas fa-balance-scale text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Positional Understanding</h3>
+                        <p class="text-gray-600">
+                            Understanding piece coordination, pawn structures, and long-term imbalances. This strategic 
+                            thinking helps me see the bigger picture in both chess and software design.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection to Software Engineering -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Chess & Software Engineering</h2>
+                <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100">
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        The parallels between chess and software engineering run deep. Both require:
+                    </p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
+                        <li><strong>Long-term planning:</strong> Just as a chess player must think several moves ahead, 
+                            software engineers need to design systems that will scale and evolve over time.</li>
+                        <li><strong>Pattern recognition:</strong> Recognizing common patterns in chess positions is similar 
+                            to identifying design patterns, code smells, and architectural patterns in software.</li>
+                        <li><strong>Learning from mistakes:</strong> Every lost game is an opportunity to improve, just 
+                            as every bug or system failure teaches us something about our code.</li>
+                        <li><strong>Balance of tactics and strategy:</strong> Chess requires both tactical sharpness and 
+                            strategic understanding—software engineering needs both quick problem-solving and thoughtful 
+                            system design.</li>
+                        <li><strong>Continuous improvement:</strong> There's always more to learn in chess, whether it's 
+                            new openings, endgame techniques, or positional concepts. The same is true in software—the 
+                            field is constantly evolving.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Resources & Approach -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">My Approach</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Regular Play</h3>
+                        <p class="text-gray-600">
+                            Playing regularly to maintain tactical sharpness and apply what I'm learning in real games.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Game Analysis</h3>
+                        <p class="text-gray-600">
+                            Reviewing my games to identify mistakes, missed opportunities, and areas for improvement.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                        <h3 class="text-xl font-bold mb-3">Study & Practice</h3>
+                        <p class="text-gray-600">
+                            Studying master games, solving puzzles, and working through endgame studies to deepen my understanding.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Chess Accounts Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8">
+            <h2 class="text-3xl font-bold mb-6 gradient-text text-center">Play Chess With Me</h2>
+            <p class="text-gray-600 mb-8 text-center">Connect with me on these platforms for games, analysis, and chess discussions.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <a href="https://www.chess.com/member/mtmccarthy14/stats" target="_blank" rel="noopener noreferrer" class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 block transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-chess text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Chess.com</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Follow my games and progress on Chess.com</p>
+                    <span class="text-purple-600 font-semibold text-sm">View Profile →</span>
+                </a>
+                <a href="https://lichess.org/@/midnightconquer" target="_blank" rel="noopener noreferrer" class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 block transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-chess text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Lichess</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Challenge me to a game or follow my studies on Lichess</p>
+                    <span class="text-blue-600 font-semibold text-sm">View Profile →</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-purple-50 to-blue-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4 gradient-text">Interested in Chess?</h2>
+        <p class="text-gray-600 mb-8">Whether you're a beginner or experienced player, chess offers endless opportunities for growth and learning.</p>
+        <a href="/about" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+            Back to About
+        </a>
+    </div>
+</section>
+{% endblock %}
