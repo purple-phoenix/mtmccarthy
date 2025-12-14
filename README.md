@@ -7,7 +7,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
 - 🏠 **Homepage**: Beautiful landing page with hero section and featured content
 - 📝 **Blog**: Markdown-based blog system with syntax highlighting
 - 🚀 **Projects**: Showcase your work with detailed project cards
-- 📄 **Interactive Resume**: Professional resume with timeline view
+- 📄 **Resume**: Professional resume with timeline view
 - 📱 **Responsive Design**: Mobile-first design using Tailwind CSS
 - 🎨 **Modern UI**: Polished interface with smooth animations and gradients
 
@@ -167,9 +167,9 @@ This project is open source and available under the MIT License.
 
 Feel free to reach out if you have questions or suggestions!
 
-- Email: your.email@example.com
-- GitHub: [@username](https://github.com/username)
-- LinkedIn: [Your Profile](https://linkedin.com/in/username)
+- Email: matttmccarthy66@gmail.com
+- GitHub: [@purple-phoenix](https://github.com/purple-phoenix)
+- LinkedIn: [Matt McCarthy](https://www.linkedin.com/in/matt-mccarthy-96b64598/)
 
 ---
 
