@@ -101,3 +101,4 @@ def claude_chat():
 ## Conclusion
 
 AI APIs from OpenAI and Anthropic make it possible to build intelligent applications faster than ever. Start small, design prompts intentionally, and scale thoughtfully.
+

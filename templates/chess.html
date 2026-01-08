@@ -132,6 +132,71 @@
     </div>
 </section>
 
+<!-- Recent Games Section -->
+{% if recent_games %}
+<section class="py-16 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold mb-6 gradient-text text-center">Recent Games</h2>
+        <div class="space-y-4">
+            {% for game in recent_games %}
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold mr-3 {% if game.platform == 'Chess.com' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ game.platform }}
+                        </span>
+                        <span class="text-sm text-gray-500">{{ game.date }}</span>
+                    </div>
+                    {% if game.url %}
+                    <a href="{{ game.url }}" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:text-purple-700 text-sm font-semibold">
+                        View Game →
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="grid md:grid-cols-3 gap-4 mb-3">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">White</div>
+                        <div class="font-semibold text-gray-900">{{ game.white }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xs text-gray-500 mb-1">Result</div>
+                        {% set user_won = false %}
+                        {% if game.platform == 'Chess.com' %}
+                            {% if (game.result == '1-0' and game.white.lower() == 'mtmccarthy14') or (game.result == '0-1' and game.black.lower() == 'mtmccarthy14') %}
+                                {% set user_won = true %}
+                            {% endif %}
+                        {% elif game.platform == 'Lichess' %}
+                            {% if (game.result == '1-0' and game.white.lower() == 'midnightconquer') or (game.result == '0-1' and game.black.lower() == 'midnightconquer') %}
+                                {% set user_won = true %}
+                            {% endif %}
+                        {% endif %}
+                        <div class="font-bold text-lg {% if user_won %}text-green-600{% elif game.result == '1/2-1/2' %}text-gray-600{% else %}text-red-600{% endif %}">
+                            {{ game.result }}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 mb-1">Black</div>
+                        <div class="font-semibold text-gray-900">{{ game.black }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                    {% if game.opening and game.opening != 'Unknown' %}
+                    <span><i class="fas fa-chess-board mr-1"></i>{{ game.opening }}</span>
+                    {% endif %}
+                    {% if game.time_control and game.time_control != 'Unknown' %}
+                    <span><i class="fas fa-clock mr-1"></i>{{ game.time_control }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if recent_games|length == 0 %}
+        <p class="text-center text-gray-500">No recent games found.</p>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
 <!-- Chess Accounts Section -->
 <section class="py-16 bg-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,3 +240,4 @@
     </div>
 </section>
 {% endblock %}
+
