@@ -286,6 +286,60 @@
             margin: 2rem 0;
             border-radius: 0.5rem;
         }
+        /* Secretary Problem Visualization Styles */
+        .secretary-viz-container {
+            margin: 2rem 0;
+        }
+        .candidates-visualization {
+            overflow-x: auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+        }
+        .candidates-grid {
+            display: grid;
+            gap: 2px;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+        .candidate-card {
+            min-height: 150px;
+        }
+        .candidate-bar {
+            font-size: 0.6rem;
+            padding: 0.1rem;
+        }
+        .candidate-bar {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .candidate-bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .viz-stats {
+            border: 1px solid #e5e7eb;
+        }
+        .phase-labels {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        /* Results Graph Styles */
+        .results-graph {
+            margin-top: 2rem;
+        }
+        .graph-container {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+        }
+        #rank-chart {
+            max-width: 100%;
+            height: auto;
+        }
+        .button-container button {
+            cursor: pointer;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>

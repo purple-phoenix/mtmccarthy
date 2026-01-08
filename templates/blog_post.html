@@ -41,6 +41,16 @@
         <div class="blog-content">
             {{ post.body|safe }}
         </div>
+        
+        <!-- Secretary Problem Visualization -->
+        {% if post.slug == 'secretary-problem-hiring' %}
+        <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive Visualization</h3>
+            <p class="text-gray-600 mb-6">See the 37% rule in action. Each simulation shows how the algorithm selects from 10 candidates.</p>
+            <div id="secretary-problem-viz"></div>
+        </div>
+        <script src="{{ url_for('static', filename='js/secretary-problem-viz.js') }}"></script>
+        {% endif %}
     </div>
 </article>
 
