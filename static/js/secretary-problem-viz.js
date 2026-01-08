@@ -77,19 +77,109 @@ class SecretaryProblemViz {
     }
 
     runMultipleSimulations(count = 100) {
-        this.results = [];
-        for (let i = 0; i < count; i++) {
-            this.generateCandidates();
-            const rank = this.runAlgorithm();
-            this.results.push({
-                simulation: i + 1,
-                rank: rank,
-                isOptimal: rank === 1,
-                selectedIndex: this.selectedIndex,
-                bestIndex: this.bestIndex
-            });
+        // Add simulations to existing results (additive)
+        const startIndex = this.results.length;
+        
+        // For large counts, run in batches to prevent UI freezing
+        const batchSize = 1000;
+        const batches = Math.ceil(count / batchSize);
+        let currentBatch = 0;
+        
+        const runBatch = () => {
+            const batchStart = currentBatch * batchSize;
+            const batchEnd = Math.min(batchStart + batchSize, count);
+            
+            for (let i = batchStart; i < batchEnd; i++) {
+                this.generateCandidates();
+                const rank = this.runAlgorithm();
+                this.results.push({
+                    simulation: startIndex + i + 1,
+                    rank: rank,
+                    isOptimal: rank === 1,
+                    selectedIndex: this.selectedIndex,
+                    bestIndex: this.bestIndex
+                });
+            }
+            
+            currentBatch++;
+            
+            // Update stats after each batch for visual feedback
+            if (currentBatch < batches) {
+                // Update stats without full re-render
+                this.updateStatsOnly();
+                // Schedule next batch
+                setTimeout(runBatch, 0);
+            } else {
+                // All batches complete, do full render
+                this.render();
+            }
+        };
+        
+        // Start first batch
+        if (count > batchSize) {
+            runBatch();
+        } else {
+            // Small count, run synchronously
+            for (let i = 0; i < count; i++) {
+                this.generateCandidates();
+                const rank = this.runAlgorithm();
+                this.results.push({
+                    simulation: startIndex + i + 1,
+                    rank: rank,
+                    isOptimal: rank === 1,
+                    selectedIndex: this.selectedIndex,
+                    bestIndex: this.bestIndex
+                });
+            }
+            this.render();
         }
-        this.render();
+    }
+    
+    updateStatsOnly() {
+        // Update only the stats display without full re-render
+        let rank1Percent = 0;
+        let rank2Percent = 0;
+        let rank3Percent = 0;
+        
+        if (this.results.length > 0) {
+            const rank1Count = this.results.filter(r => r.rank === 1).length;
+            const rank2Count = this.results.filter(r => r.rank === 2).length;
+            const rank3Count = this.results.filter(r => r.rank === 3).length;
+            
+            rank1Percent = (rank1Count / this.results.length * 100).toFixed(1);
+            rank2Percent = (rank2Count / this.results.length * 100).toFixed(1);
+            rank3Percent = (rank3Count / this.results.length * 100).toFixed(1);
+        }
+        
+        // Update simulation count display
+        const simCountEl = document.querySelector('.viz-stats .grid:last-child div:first-child .text-2xl');
+        if (simCountEl) {
+            simCountEl.textContent = this.results.length.toLocaleString();
+        }
+        
+        // Update rank 1 percentage
+        const rank1El = document.querySelector('.viz-stats .grid:last-child div:nth-child(2) .text-2xl');
+        if (rank1El) {
+            rank1El.textContent = rank1Percent + '%';
+        }
+        
+        // Update rank 2 percentage
+        const rank2El = document.querySelector('.viz-stats .grid:last-child div:nth-child(3) .text-2xl');
+        if (rank2El) {
+            rank2El.textContent = rank2Percent + '%';
+        }
+        
+        // Update rank 3 percentage
+        const rank3El = document.querySelector('.viz-stats .grid:last-child div:nth-child(4) .text-2xl');
+        if (rank3El) {
+            rank3El.textContent = rank3Percent + '%';
+        }
+        
+        // Update total simulations in chart header
+        const totalSimsEl = document.querySelector('.results-graph .text-sm .text-purple-600');
+        if (totalSimsEl) {
+            totalSimsEl.textContent = this.results.length.toLocaleString();
+        }
     }
 
     reset() {
@@ -107,13 +197,45 @@ class SecretaryProblemViz {
             })() : null;
         
         const isOptimal = this.selectedIndex === this.bestIndex;
-        const successRate = this.results.length > 0 ? 
-            (this.results.filter(r => r.isOptimal).length / this.results.length * 100).toFixed(1) : 0;
-        const avgRank = this.results.length > 0 ? 
-            (this.results.reduce((sum, r) => sum + r.rank, 0) / this.results.length).toFixed(2) : null;
+        
+        // Calculate percentages for rank 1, 2, and 3
+        let rank1Percent = 0;
+        let rank2Percent = 0;
+        let rank3Percent = 0;
+        
+        if (this.results.length > 0) {
+            const rank1Count = this.results.filter(r => r.rank === 1).length;
+            const rank2Count = this.results.filter(r => r.rank === 2).length;
+            const rank3Count = this.results.filter(r => r.rank === 3).length;
+            
+            rank1Percent = (rank1Count / this.results.length * 100).toFixed(1);
+            rank2Percent = (rank2Count / this.results.length * 100).toFixed(1);
+            rank3Percent = (rank3Count / this.results.length * 100).toFixed(1);
+        }
         
         let html = `
             <div class="secretary-viz-container">
+                <div class="button-container mb-6 flex flex-wrap gap-3 justify-center">
+                    <button id="run-single" class="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                        Run Single Simulation
+                    </button>
+                    <button id="run-100" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        +100 Simulations
+                    </button>
+                    <button id="run-1000" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        +1,000 Simulations
+                    </button>
+                    <button id="run-10000" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                        +10,000 Simulations
+                    </button>
+                    <button id="run-100000" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                        +100,000 Simulations
+                    </button>
+                    <button id="reset" class="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                        Reset
+                    </button>
+                </div>
+                
                 <div class="viz-stats mb-6 p-4 bg-gray-50 rounded-lg">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-4">
                         <div>
@@ -136,24 +258,29 @@ class SecretaryProblemViz {
                         </div>
                     </div>
                     ${this.results.length > 0 ? `
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center pt-4 border-t border-gray-300">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-4 border-t border-gray-300">
                         <div>
                             <div class="text-sm text-gray-600">Simulations Run</div>
-                            <div class="text-2xl font-bold text-gray-900">${this.results.length}</div>
+                            <div class="text-2xl font-bold text-gray-900">${this.results.length.toLocaleString()}</div>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-600">Success Rate</div>
-                            <div class="text-2xl font-bold text-green-600">${successRate}%</div>
+                            <div class="text-sm text-gray-600">Rank 1 %</div>
+                            <div class="text-2xl font-bold text-green-600">${rank1Percent}%</div>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-600">Average Rank</div>
-                            <div class="text-2xl font-bold text-purple-600">${avgRank}</div>
+                            <div class="text-sm text-gray-600">Rank 2 %</div>
+                            <div class="text-2xl font-bold text-blue-600">${rank2Percent}%</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Rank 3 %</div>
+                            <div class="text-2xl font-bold text-purple-600">${rank3Percent}%</div>
                         </div>
                     </div>
                     ` : ''}
                 </div>
 
                 <div class="candidates-visualization mb-4">
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Latest Simulation</h3>
                     <div class="phase-labels mb-2 flex text-sm font-semibold">
                         <div style="width: ${(this.lookSeeCount / this.numCandidates * 100)}%;" class="text-center text-blue-600 border-r-2 border-gray-300">Explore Phase</div>
                         <div style="width: ${((this.selectedIndex + 1 - this.lookSeeCount) / this.numCandidates * 100)}%;" class="text-center text-orange-600 border-r-2 border-gray-300">Select Phase</div>
@@ -228,7 +355,7 @@ class SecretaryProblemViz {
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-bold text-lg">Rank Distribution</h4>
                         <div class="text-sm text-gray-600 font-semibold">
-                            Total Simulations: <span class="text-purple-600 text-lg">${this.results.length}</span>
+                            Total Simulations: <span class="text-purple-600 text-lg">${this.results.length.toLocaleString()}</span>
                         </div>
                     </div>
                     <div class="graph-container" style="height: 300px; position: relative;">
@@ -236,18 +363,6 @@ class SecretaryProblemViz {
                     </div>
                 </div>
                 ` : ''}
-                
-                <div class="button-container mt-6 flex flex-wrap gap-3 justify-center">
-                    <button id="run-single" class="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
-                        Run Single Simulation
-                    </button>
-                    <button id="run-many" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                        Run 100 Simulations
-                    </button>
-                    <button id="reset" class="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">
-                        Reset
-                    </button>
-                </div>
             </div>
         `;
 
@@ -255,7 +370,10 @@ class SecretaryProblemViz {
         
         // Add event listeners
         const runSingleBtn = document.getElementById('run-single');
-        const runManyBtn = document.getElementById('run-many');
+        const run100Btn = document.getElementById('run-100');
+        const run1000Btn = document.getElementById('run-1000');
+        const run10000Btn = document.getElementById('run-10000');
+        const run100000Btn = document.getElementById('run-100000');
         const resetBtn = document.getElementById('reset');
         
         if (runSingleBtn) {
@@ -273,9 +391,27 @@ class SecretaryProblemViz {
             };
         }
         
-        if (runManyBtn) {
-            runManyBtn.onclick = () => {
+        if (run100Btn) {
+            run100Btn.onclick = () => {
                 this.runMultipleSimulations(100);
+            };
+        }
+        
+        if (run1000Btn) {
+            run1000Btn.onclick = () => {
+                this.runMultipleSimulations(1000);
+            };
+        }
+        
+        if (run10000Btn) {
+            run10000Btn.onclick = () => {
+                this.runMultipleSimulations(10000);
+            };
+        }
+        
+        if (run100000Btn) {
+            run100000Btn.onclick = () => {
+                this.runMultipleSimulations(100000);
             };
         }
         
@@ -285,22 +421,50 @@ class SecretaryProblemViz {
             };
         }
         
-        // Render chart if we have results
+        // Render chart if we have results - ensure DOM is ready
         if (this.results.length > 0) {
-            this.renderChart();
+            // Use setTimeout to ensure DOM is fully updated
+            setTimeout(() => {
+                this.renderChart();
+            }, 10);
         }
     }
     
     renderChart() {
         const canvas = document.getElementById('rank-chart');
-        if (!canvas) return;
+        if (!canvas) {
+            // Retry once after a short delay if canvas not found yet
+            setTimeout(() => {
+                const retryCanvas = document.getElementById('rank-chart');
+                if (retryCanvas) {
+                    this.renderChart();
+                }
+            }, 50);
+            return;
+        }
         
         const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.error('Could not get 2d context');
+            return;
+        }
+        
+        // Ensure canvas has proper dimensions
+        // Note: Setting width/height properties resets the canvas, so we set them once
+        if (!canvas.width || !canvas.height) {
+            canvas.width = 800;
+            canvas.height = 300;
+        }
+        
         const width = canvas.width;
         const height = canvas.height;
         
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
+        
+        if (this.results.length === 0) {
+            return;
+        }
         
         // Calculate rank distribution
         const rankCounts = {};
@@ -310,6 +474,11 @@ class SecretaryProblemViz {
         
         const maxRank = Math.max(...this.results.map(r => r.rank));
         const maxCount = Math.max(...Object.values(rankCounts));
+        
+        if (maxRank <= 0 || maxCount <= 0) {
+            console.error('Invalid chart data:', { maxRank, maxCount });
+            return;
+        }
         
         // Draw axes
         ctx.strokeStyle = '#6b7280';
@@ -408,4 +577,5 @@ document.addEventListener('DOMContentLoaded', function() {
         window.secretaryViz.render();
     }
 });
+
 
