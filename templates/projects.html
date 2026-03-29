@@ -18,9 +18,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for project in projects %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
-                {% set card_url = project.blog_url or project.demo_url or project.github_url %}
-                {% if card_url %}
-                <a href="{{ card_url }}"{% if not project.blog_url %} target="_blank"{% endif %} class="block cursor-pointer">
+                {% if project.slug %}
+                <a href="/projects/{{ project.slug }}" class="block cursor-pointer">
                 {% endif %}
                 <div class="h-64 bg-gradient-to-br from-purple-400 via-blue-500 to-indigo-600 relative">
                     {% if project.image_url %}
@@ -32,7 +31,7 @@
                         {% endif %}
                     </div>
                 </div>
-                {% if card_url %}
+                {% if project.slug %}
                 </a>
                 {% endif %}
                 <div class="p-6">

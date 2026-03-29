@@ -285,6 +285,14 @@ def projects():
     projects_list = load_projects()
     return render_template('projects.html', projects=projects_list)
 
+@app.route('/projects/<slug>')
+def project_detail(slug):
+    projects_list = load_projects()
+    project = next((p for p in projects_list if p.get('slug') == slug), None)
+    if not project:
+        abort(404)
+    return render_template('project_detail.html', project=project)
+
 @app.route('/resume')
 def resume():
     return render_template('resume.html')

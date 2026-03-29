@@ -1,5 +1,6 @@
 [
   {
+    "slug": "lstm-stock-prediction",
     "title": "LSTM Stock Price Prediction",
     "description": "A neural network-based stock price prediction system using Long Short-Term Memory (LSTM) networks. Built as a final project for CS 682 Neural Networks course at UMass Amherst. Implements a multi-layer LSTM architecture with dropout regularization, layer normalization, and early stopping for predicting daily stock closing prices.",
     "tags": ["Python", "TensorFlow", "Keras", "LSTM", "Neural Networks", "Machine Learning", "Time Series"],
@@ -20,6 +21,7 @@
     ]
   },
   {
+    "slug": "astrology-insights",
     "title": "Astrology Insights",
     "description": "A full-featured web application for generating detailed astrological birth charts with AI-powered interpretations, interactive chat, and synastry analysis. Built with Flask, PostgreSQL, and integrated with OpenAI/Anthropic for personalized chart readings.",
     "tags": ["Python", "Flask", "PostgreSQL", "OpenAI", "Stripe", "OAuth", "API Integration"],
@@ -39,6 +41,7 @@
     ]
   },
   {
+    "slug": "mattmccarthy-dev",
     "title": "mattmccarthy.dev",
     "description": "A modern, responsive personal website built with Flask and Tailwind CSS featuring blog, projects showcase, and interactive resume.",
     "tags": ["Python", "Flask", "Tailwind CSS", "Web Development"],
@@ -55,6 +58,7 @@
     ]
   },
   {
+    "slug": "ai-agent-orchestration",
     "title": "AI Agent Orchestration",
     "description": "Building and orchestrating teams of AI coding agents using Claude Code, OpenClaw, Codex, and Paperclip. Using agents to autonomously build features, write content, fix bugs, and run overnight — across multiple live projects simultaneously. Learning what works, what does not, and how to get the most out of AI-assisted development in real production environments.",
     "tags": ["Claude Code", "OpenClaw", "Codex", "Paperclip", "AI Agents", "Automation"],
@@ -68,6 +72,7 @@
     ]
   },
   {
+    "slug": "thrive-beyond-coaching",
     "title": "Thrive Beyond Coaching",
     "description": "A website built for Kelly McCarthy — breast cancer survivor, educator, and certified life coach. Kelly brings 8 years of teaching experience and a Masters in Education to her coaching practice, currently working at Boston University supporting students through mental health re-integration. Her niche: cancer survivors and caregivers navigating life after diagnosis. Built with Next.js, TypeScript, and Tailwind CSS.",
     "tags": ["Next.js", "TypeScript", "React", "Tailwind CSS", "Web Development"],
@@ -85,5 +90,3 @@
     ]
   }
 ]
-
-

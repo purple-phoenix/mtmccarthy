@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} - Matt McCarthy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white">
+    {% if project.image_url %}
+    <div class="absolute inset-0 overflow-hidden">
+        <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover opacity-20">
+    </div>
+    {% endif %}
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <a href="/projects" class="inline-flex items-center text-white/80 hover:text-white mb-8 transition-colors text-sm">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Projects
+        </a>
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+            {% if project.status %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold
+                {% if project.status == 'Active' %}bg-green-400 text-green-900
+                {% elif project.status == 'Complete' %}bg-blue-400 text-blue-900
+                {% else %}bg-gray-300 text-gray-800{% endif %}">
+                {{ project.status }}
+            </span>
+            {% endif %}
+            {% if project.featured %}
+            <span class="px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">Featured</span>
+            {% endif %}
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold mb-6">{{ project.title }}</h1>
+        {% if project.tags %}
+        <div class="flex flex-wrap gap-2">
+            {% for tag in project.tags %}
+            <span class="px-3 py-1 bg-white/20 text-white rounded-full text-sm">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <!-- Description + Highlights -->
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">About this project</h2>
+                <p class="text-gray-700 text-lg leading-relaxed mb-10">{{ project.description }}</p>
+
+                {% if project.highlights %}
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Highlights</h2>
+                <ul class="space-y-3">
+                    {% for highlight in project.highlights %}
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full bg-purple-500"></span>
+                        <span class="text-gray-700">{{ highlight }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar: Links -->
+            <div class="lg:col-span-1">
+                <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 sticky top-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Links</h3>
+                    <div class="flex flex-col gap-3">
+                        {% if project.demo_url %}
+                        <a href="{{ project.demo_url }}" target="_blank"
+                           class="flex items-center gap-3 px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Live Demo</span>
+                        </a>
+                        {% endif %}
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" target="_blank"
+                           class="flex items-center gap-3 px-4 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-github"></i>
+                            <span>View Code</span>
+                        </a>
+                        {% endif %}
+                        {% if project.paper_url %}
+                        <a href="{{ project.paper_url }}" target="_blank"
+                           class="flex items-center gap-3 px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Read Paper</span>
+                        </a>
+                        {% endif %}
+                        {% if project.blog_url %}
+                        <a href="{{ project.blog_url }}"
+                           class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-book"></i>
+                            <span>Read Article</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Back CTA -->
+<section class="py-12 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <a href="/projects" class="inline-flex items-center text-purple-600 font-semibold hover:underline">
+            <i class="fas fa-arrow-left mr-2"></i> All Projects
+        </a>
+        <a href="/about#get-in-touch" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
+            Get In Touch
+        </a>
+    </div>
+</section>
+{% endblock %}
