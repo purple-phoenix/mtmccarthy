@@ -55,6 +55,19 @@
     ]
   },
   {
+    "title": "AI Agent Orchestration",
+    "description": "Building and orchestrating teams of AI coding agents using Claude Code, OpenClaw, Codex, and Paperclip. Using agents to autonomously build features, write content, fix bugs, and run overnight — across multiple live projects simultaneously. Learning what works, what does not, and how to get the most out of AI-assisted development in real production environments.",
+    "tags": ["Claude Code", "OpenClaw", "Codex", "Paperclip", "AI Agents", "Automation"],
+    "status": "Active",
+    "featured": true,
+    "blog_url": "/blog/ai-coding-agents-real-projects",
+    "highlights": [
+      "Orchestrated 5+ parallel coding agents across 3 projects in a single night",
+      "Built Claude → Codex fallback chains for resilient overnight autonomous work",
+      "Integrated Paperclip for multi-project org chart and task management"
+    ]
+  },
+  {
     "title": "Thrive Beyond Coaching",
     "description": "A website built for Kelly McCarthy — breast cancer survivor, educator, and certified life coach. Kelly brings 8 years of teaching experience and a Masters in Education to her coaching practice, currently working at Boston University supporting students through mental health re-integration. Her niche: cancer survivors and caregivers navigating life after diagnosis. Built with Next.js, TypeScript, and Tailwind CSS.",
     "tags": ["Next.js", "TypeScript", "React", "Tailwind CSS", "Web Development"],
