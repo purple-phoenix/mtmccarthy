@@ -15,6 +15,10 @@ CACHE_TTL = 300  # 5 minutes
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 
+@app.context_processor
+def inject_ga_measurement_id():
+    return {'ga_measurement_id': os.environ.get('GA_MEASUREMENT_ID')}
+
 # Configuration
 BLOG_DIR = 'content/blog'
 PROJECTS_FILE = 'content/projects.json'
