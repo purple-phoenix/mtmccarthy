@@ -4,7 +4,7 @@ date: "2025-10-20"
 category: "Engineering"
 excerpt: "Patience, fundamentals, and getting comfortable being bad at something new — lessons from the mat that apply directly to building reliable software."
 read_time: "5"
-image_url: "/static/images/bjj-feature.jpg"
+image_url: "/static/images/bjj-feature.svg"
 ---
 
 When I started BJJ, I got submitted constantly. Not occasionally — constantly. By people who weighed 30 pounds less than me. By people who'd been training for six months. The submissions weren't even creative. They were the same handful of basic techniques, over and over.
