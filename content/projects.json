@@ -56,11 +56,11 @@
   },
   {
     "title": "Thrive Beyond Coaching",
-    "description": "A modern, responsive website for Thrive Beyond Coaching LLC - dynamic coaching for cancer survivors and their loved ones. Built with Next.js, TypeScript, and Tailwind CSS with a warm, supportive design.",
+    "description": "A website built for Kelly McCarthy — breast cancer survivor, educator, and certified life coach. Kelly brings 8 years of teaching experience and a Masters in Education to her coaching practice, currently working at Boston University supporting students through mental health re-integration. Her niche: cancer survivors and caregivers navigating life after diagnosis. Built with Next.js, TypeScript, and Tailwind CSS.",
     "tags": ["Next.js", "TypeScript", "React", "Tailwind CSS", "Web Development"],
     "status": "Active",
     "featured": true,
-    "demo_url": "https://thrive-beyond-coaching.com",
+    "demo_url": "https://thrivebeyondcoaching.vercel.app",
     "image_url": "/static/images/thrive-beyond-coaching-feature.png",
     "highlights": [
       "Next.js 14 with App Router and TypeScript",
@@ -68,7 +68,7 @@
       "Multiple pages: Home, About, Offerings, Shop, and Contact",
       "Contact form integration with Formspree",
       "Playwright testing suite for quality assurance",
-      "Production deployment with optimized performance"
+      "Built for a coach specializing in cancer survivors and caregivers"
     ]
   }
 ]
