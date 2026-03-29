@@ -72,11 +72,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for project in projects %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift">
+                {% set card_url = project.blog_url or project.demo_url or project.github_url %}
+                {% if card_url %}
+                <a href="{{ card_url }}"{% if not project.blog_url %} target="_blank"{% endif %} class="block cursor-pointer">
+                {% endif %}
                 <div class="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative">
                     {% if project.image_url %}
                     <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
                     {% endif %}
                 </div>
+                {% if card_url %}
+                </a>
+                {% endif %}
                 <div class="p-6">
                     <h3 class="text-xl font-bold mb-2 text-gray-900">{{ project.title }}</h3>
                     <p class="text-gray-600 mb-4">{{ project.description }}</p>
@@ -126,11 +133,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for post in posts %}
             <article class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
+                <a href="/blog/{{ post.slug }}" class="block cursor-pointer">
                 <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500 relative overflow-hidden">
                     {% if post.image_url %}
                     <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
                     {% endif %}
                 </div>
+                </a>
                 <div class="p-6">
                     <div class="text-sm text-gray-500 mb-2">{{ post.date.strftime('%B %d, %Y') }}</div>
                     <h3 class="text-xl font-bold mb-3 text-gray-900">
