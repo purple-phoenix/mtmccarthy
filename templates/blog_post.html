@@ -51,6 +51,24 @@
         </div>
         <script src="{{ url_for('static', filename='js/secretary-problem-viz.js') }}"></script>
         {% endif %}
+
+        {% if post.slug == 'max-flow-ford-fulkerson' %}
+        <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive: Step Through Edmonds-Karp</h3>
+            <p class="text-gray-600 mb-6">Watch the algorithm find augmenting paths one by one. Each step shows the BFS path and how residual capacities update.</p>
+            <div id="max-flow-viz"></div>
+        </div>
+        <script src="{{ url_for('static', filename='js/max-flow-viz.js') }}"></script>
+        {% endif %}
+
+        {% if post.slug == 'min-cut-max-flow-theorem' %}
+        <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive: Find the Min Cut</h3>
+            <p class="text-gray-600 mb-6">Run the max flow, then discover which edges form the minimum cut and why their capacity equals the max flow.</p>
+            <div id="min-cut-viz"></div>
+        </div>
+        <script src="{{ url_for('static', filename='js/min-cut-viz.js') }}"></script>
+        {% endif %}
     </div>
 </article>
 
