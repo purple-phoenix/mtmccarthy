@@ -69,6 +69,20 @@
         </div>
         <script src="{{ url_for('static', filename='js/min-cut-viz.js') }}"></script>
         {% endif %}
+
+        {% if post.slug == 'max-flow-exam-scheduling' %}
+        <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive: Step Through the Scheduling Algorithm</h3>
+            <p class="text-gray-600 mb-6">Watch Edmonds-Karp assign 4 exams to rooms and proctors one augmenting path at a time. Each path either secures a room or assigns a proctor.</p>
+            <div id="exam-scheduling-viz"></div>
+        </div>
+        <div class="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Build Your Own: Is It Feasible?</h3>
+            <p class="text-gray-600 mb-6">Adjust the number of exams, rooms, and proctors. The algorithm will tell you whether a valid schedule exists — and if not, what the bottleneck is.</p>
+            <div id="exam-scheduling-builder"></div>
+        </div>
+        <script src="{{ url_for('static', filename='js/exam-scheduling-viz.js') }}"></script>
+        {% endif %}
     </div>
 </article>
 
