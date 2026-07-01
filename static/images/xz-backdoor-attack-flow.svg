@@ -47,5 +47,5 @@
   <line x1="367" y1="215" x2="406" y2="215" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" marker-end="url(#arrow)"/>
   <line x1="562" y1="215" x2="601" y2="215" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" marker-end="url(#arrow)"/>
 
-  <text x="400" y="345" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="system-ui, sans-serif" font-size="14" font-style="italic">The payload lived only in the shipped tarball &#8212; building from the Git source bypassed it.</text>
+  <text x="400" y="345" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="system-ui, sans-serif" font-size="14" font-style="italic">The injector lived only in the shipped tarball &#8212; building from the Git source left the staged payload inert.</text>
 </svg>
