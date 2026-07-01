@@ -76,6 +76,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
 └── static/              # Static files (CSS, JS, images)
     ├── css/
+    ├── images/          # Blog hero images and other assets
     └── js/
 ```
 

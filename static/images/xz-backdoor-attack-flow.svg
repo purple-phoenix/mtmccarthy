@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-label="XZ backdoor supply-chain attack flow: a social-engineered upstream maintainer publishes a malicious release tarball, whose payload is injected into liblzma during the distribution build and reaches sshd as a pre-authentication backdoor.">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.85)"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="400" fill="url(#bg)"/>
+
+  <text x="400" y="52" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="30" font-weight="bold">The XZ Backdoor</text>
+  <text x="400" y="80" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="system-ui, sans-serif" font-size="16">CVE-2024-3094 &#183; supply-chain attack flow</text>
+
+  <!-- Stage 1 -->
+  <rect x="20" y="150" width="150" height="130" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+  <text x="95" y="178" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">1</text>
+  <text x="95" y="205" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">Upstream</text>
+  <text x="95" y="228" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">maintainer</text>
+  <text x="95" y="258" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="system-ui, sans-serif" font-size="12.5">social-engineered</text>
+
+  <!-- Stage 2 -->
+  <rect x="215" y="150" width="150" height="130" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+  <text x="290" y="178" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">2</text>
+  <text x="290" y="205" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">Malicious</text>
+  <text x="290" y="228" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">tarball</text>
+  <text x="290" y="258" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="system-ui, sans-serif" font-size="12.5">payload in test files</text>
+
+  <!-- Stage 3 -->
+  <rect x="410" y="150" width="150" height="130" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+  <text x="485" y="178" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">3</text>
+  <text x="485" y="205" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">Distro build</text>
+  <text x="485" y="228" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="19" font-weight="bold">liblzma</text>
+  <text x="485" y="258" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="system-ui, sans-serif" font-size="12.5">injected at ./configure</text>
+
+  <!-- Stage 4 -->
+  <rect x="605" y="150" width="150" height="130" rx="12" fill="rgba(255,255,255,0.18)" stroke="white" stroke-width="2"/>
+  <text x="680" y="178" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">4</text>
+  <text x="680" y="205" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="20" font-weight="bold">sshd</text>
+  <text x="680" y="228" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14">via libsystemd</text>
+  <text x="680" y="258" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="system-ui, sans-serif" font-size="12.5">pre-auth RCE as root</text>
+
+  <!-- Arrows -->
+  <line x1="172" y1="215" x2="211" y2="215" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="367" y1="215" x2="406" y2="215" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="562" y1="215" x2="601" y2="215" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <text x="400" y="345" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="system-ui, sans-serif" font-size="14" font-style="italic">The injector lived only in the shipped tarball &#8212; building from the Git source left the staged payload inert.</text>
+</svg>
