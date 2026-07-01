@@ -5,7 +5,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
 ## Features
 
 - 🏠 **Homepage**: Beautiful landing page with hero section and featured content
-- 📝 **Blog**: Markdown-based blog system with syntax highlighting
+- 📝 **Blog**: Markdown-based blog system with syntax highlighting and category filter pages
 - 🚀 **Projects**: Showcase your work with detailed project cards
 - 📄 **Resume**: Professional resume with timeline view
 - 📱 **Responsive Design**: Mobile-first design using Tailwind CSS
@@ -69,6 +69,9 @@ A modern, professional personal website built with Flask featuring a blog, proje
 │   ├── index.html       # Homepage
 │   ├── about.html       # About page
 │   ├── blog.html        # Blog listing
+│   ├── blog_category.html # Blog category listing (/blog/category/<slug>)
+│   ├── _blog_post_card.html    # Shared post card partial
+│   ├── _blog_category_nav.html # Shared category pill bar partial
 │   ├── blog_post.html   # Individual blog post
 │   ├── projects.html    # Projects showcase
 │   ├── resume.html      # Interactive resume
@@ -97,6 +100,8 @@ read_time: "5"
 
 Your blog content here in markdown...
 ```
+
+The `category` gives the post a filterable category page at `/blog/category/<slug>` (the slug is derived automatically from the name, e.g. `AI & Machine Learning` → `ai-machine-learning`) — categories come entirely from post front matter, so there is no separate list to maintain.
 
 You can also add an optional `image_url` for a hero image — only if it points at a real file under `static/images/` (posts without one render fine without an image). The `excerpt` doubles as the post's meta description, social-share (OG/Twitter) description, and RSS summary; a non-SVG `image_url` also becomes the post's social-share image.
 
