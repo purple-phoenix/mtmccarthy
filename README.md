@@ -22,8 +22,8 @@ A modern, professional personal website built with Flask featuring a blog, proje
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/personal-website.git
-   cd personal-website
+   git clone https://github.com/purple-phoenix/mtmccarthy.git
+   cd mtmccarthy
    ```
 
 2. **Create a virtual environment**
@@ -86,6 +86,8 @@ read_time: "5"
 Your blog content here in markdown...
 ```
 
+You can also add an optional `image_url` for a hero image — only if it points at a real file under `static/images/` (posts without one render fine without an image).
+
 ### Adding Projects
 
 Edit `content/projects.json` to add or modify projects:
@@ -123,23 +125,9 @@ The website uses Tailwind CSS via CDN. To customize colors, gradients, or styles
 
 ## Deployment
 
-### Deploying to Heroku
+### Deploying to Render (Production)
 
-1. Create a `Procfile`:
-   ```
-   web: gunicorn app:app
-   ```
-
-2. Add `gunicorn` to `requirements.txt`:
-   ```
-   gunicorn==21.2.0
-   ```
-
-3. Deploy:
-   ```bash
-   heroku create your-app-name
-   git push heroku main
-   ```
+This site is deployed on Render with gunicorn. There is no `Procfile` or `runtime.txt` — the Start Command (`gunicorn app:app`) and Python version are configured in the Render dashboard. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full guide.
 
 ### Deploying to PythonAnywhere
 
