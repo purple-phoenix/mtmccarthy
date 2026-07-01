@@ -22,3 +22,10 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Blog posts are parsed markdown cached in-process per file, invalidated by mtime (`_post_cache` in `app.py`); edits to `content/blog/*.md` show up without a restart.
 - `/chess` calls Chess.com and Lichess with per-request timeout `CHESS_API_TIMEOUT` and an overall deadline `CHESS_FETCH_DEADLINE`; results (including empty on failure) are cached for 5 minutes. To test the failure path, run with `https_proxy=http://127.0.0.1:9`.
+
+## SEO / discoverability
+
+- The canonical production origin is `SITE_URL` in `app.py` (env-overridable, default `https://mattmccarthy.dev`). All absolute URLs (canonicals, OG tags, sitemap, feed) derive from it.
+- Per-page meta descriptions live in `PAGE_META_DESCRIPTIONS` in `app.py`, keyed by Flask endpoint — add an entry when adding a new page route. Blog posts and project pages derive descriptions from their own content (excerpt / `description` field) instead.
+- `base.html` builds OG/Twitter tags by reusing the `title`, `meta_description`, `canonical_url`, and `og_image` Jinja blocks via `self.blockname()` — child templates only override the blocks, never the meta tags directly. `blog_post.html` overrides them per post and emits BlogPosting JSON-LD.
+- `/sitemap.xml`, `/robots.txt`, and `/feed.xml` (RSS 2.0) are generated dynamically: sitemap page list comes from `app.url_map` (zero-argument GET rules, minus `SITEMAP_EXCLUDED_ENDPOINTS`) plus project and post slugs, so new fixed routes appear automatically. XML is rendered from `templates/sitemap.xml` / `templates/feed.xml` (Flask autoescapes `.xml` templates).
