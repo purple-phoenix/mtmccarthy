@@ -1,0 +1,13 @@
+{# Category filter pills; expects `categories` (slug -> {name, slug, posts}) and optional `active_slug` #}
+<div class="flex flex-wrap justify-center gap-3">
+    <a href="/blog"
+       class="px-4 py-2 rounded-full text-sm font-medium transition-colors {{ 'bg-purple-600 text-white' if not active_slug else 'bg-purple-100 text-purple-700 hover:bg-purple-200' }}">
+        All Posts
+    </a>
+    {% for slug, category in categories.items() %}
+    <a href="/blog/category/{{ slug }}"
+       class="px-4 py-2 rounded-full text-sm font-medium transition-colors {{ 'bg-purple-600 text-white' if active_slug == slug else 'bg-purple-100 text-purple-700 hover:bg-purple-200' }}">
+        {{ category.name }} <span class="opacity-75">({{ category.posts|length }})</span>
+    </a>
+    {% endfor %}
+</div>

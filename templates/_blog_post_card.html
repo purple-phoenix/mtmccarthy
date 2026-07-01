@@ -1,0 +1,37 @@
+{# Shared blog post card; expects `post` in context (used by blog.html and blog_category.html) #}
+<article class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
+    <a href="/blog/{{ post.slug }}" class="block cursor-pointer">
+    <div class="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative overflow-hidden">
+        {% if post.image_url %}
+        <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+        {% endif %}
+    </div>
+    </a>
+    <div class="p-6">
+        <div class="flex items-center text-sm text-gray-500 mb-3">
+            <i class="far fa-calendar mr-2"></i>
+            <span>{{ post.date.strftime('%B %d, %Y') }}</span>
+            {% if post.category %}
+            <a href="/blog/category/{{ post.category|category_slug }}" class="ml-4 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs hover:bg-purple-200 transition-colors">{{ post.category }}</a>
+            {% endif %}
+        </div>
+        <h2 class="text-2xl font-bold mb-3 text-gray-900">
+            <a href="/blog/{{ post.slug }}" class="hover:text-purple-600 transition-colors">
+                {{ post.title }}
+            </a>
+        </h2>
+        <p class="text-gray-600 mb-4 line-clamp-3">
+            {{ post.excerpt if post.excerpt else 'Read more about this topic...' }}
+        </p>
+        <div class="flex items-center justify-between">
+            <a href="/blog/{{ post.slug }}" class="text-purple-600 font-semibold hover:underline">
+                Read More →
+            </a>
+            {% if post.read_time %}
+            <span class="text-sm text-gray-500">
+                <i class="far fa-clock"></i> {{ post.read_time }} min read
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</article>

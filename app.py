@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from email.utils import format_datetime
 import json
 import glob
+import re
 import requests
 import secrets
 import time
@@ -143,6 +144,29 @@ def load_blog_posts():
     # Sort by date, newest first
     posts.sort(key=lambda x: x['date'], reverse=True)
     return posts
+
+@app.template_filter('category_slug')
+def category_slug(name):
+    """Normalize a category name to a URL slug ('AI & Machine Learning' -> 'ai-machine-learning')."""
+    return re.sub(r'[^a-z0-9]+', '-', (name or '').lower()).strip('-')
+
+def get_blog_categories(posts=None):
+    """Group posts by category, keyed by slug, sorted by display name.
+
+    Categories are derived from post front matter; a slug with no posts
+    simply doesn't exist. Post lists inherit newest-first order.
+    """
+    if posts is None:
+        posts = load_blog_posts()
+    categories = {}
+    for post in posts:
+        name = post.get('category')
+        slug = category_slug(name)
+        if not slug:
+            continue
+        entry = categories.setdefault(slug, {'name': name, 'slug': slug, 'posts': []})
+        entry['posts'].append(post)
+    return dict(sorted(categories.items(), key=lambda item: item[1]['name'].lower()))
 
 def load_projects():
     """Load projects from JSON file"""
@@ -341,7 +365,17 @@ def about():
 @app.route('/blog')
 def blog():
     posts = load_blog_posts()
-    return render_template('blog.html', posts=posts)
+    categories = get_blog_categories(posts)
+    return render_template('blog.html', posts=posts, categories=categories)
+
+@app.route('/blog/category/<slug>')
+def blog_category(slug):
+    categories = get_blog_categories()
+    category = categories.get(slug)
+    if not category:
+        abort(404)
+    return render_template('blog_category.html', category=category,
+                           posts=category['posts'], categories=categories)
 
 @app.route('/blog/<slug>')
 def blog_post(slug):
@@ -455,6 +489,12 @@ def sitemap_xml():
     for post in posts:
         pages.append({'loc': f"{SITE_URL}/blog/{post['slug']}",
                       'lastmod': post['date'].strftime('%Y-%m-%d')})
+
+    # Category listing pages change when their newest post does
+    for slug, category in get_blog_categories(posts).items():
+        newest = max(p['date'] for p in category['posts'])
+        pages.append({'loc': f"{SITE_URL}/blog/category/{slug}",
+                      'lastmod': newest.strftime('%Y-%m-%d')})
 
     xml = render_template('sitemap.xml', pages=pages)
     return Response(xml, mimetype='application/xml')
