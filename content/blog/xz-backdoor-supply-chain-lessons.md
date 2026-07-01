@@ -4,6 +4,7 @@ date: "2026-07-01"
 category: "Security"
 excerpt: "A backdoor that nearly shipped into every major Linux distribution lived in release tarballs and build-test files, not the source code anyone was reading. Here's the anatomy of the attack, the multi-year social engineering behind it, and what it means for how we trust open source."
 read_time: "13"
+image_url: "/static/images/xz-backdoor-attack-flow.svg"
 ---
 
 In late March 2024, a Microsoft engineer named Andres Freund was benchmarking a PostgreSQL build and noticed something odd: SSH logins on his Debian test machine were taking about half a second longer than they should, and `sshd` was burning noticeable CPU doing apparently nothing. Most of us would have shrugged, blamed a noisy VM, and moved on. Freund didn't. He pulled out `valgrind`, followed the anomaly down, and found a backdoor sitting inside the `liblzma` library — one carefully built to hand remote code execution to whoever held the right private key.
@@ -21,7 +22,7 @@ The backdoor lived in the **release tarball** — the packaged `.tar.gz` that ma
 - Two "test" files in the `tests/files/` directory that were supposed to be corrupt/malformed compression samples: `bad-3-corrupt_lzma2.xz` and `good-large_compressed.lzma`. To a reviewer, these are exactly what a compression library's test suite *should* contain — deliberately broken binary blobs used to exercise error handling. In reality they held the obfuscated, compressed stages of the exploit.
 - A modified `build-to-host.m4` macro in the tarball's build tooling — a file that exists in the generated tarball but not in the tracked repository. During `./configure`, this macro quietly extracted and decompressed the payload from those "test" files and injected it into the build.
 
-This is the crux of the whole thing. Autotools projects ship a generated tarball that differs from the source tree — it contains `configure` scripts and `m4` macros produced by `autoreconf`. Almost nobody diffs the shipped tarball against the repository, because for decades there was no reason to. The attacker exploited that gap. As the course of my research kept underlining: if you had downloaded the source from Git and built it yourself, you would not have been vulnerable. The poison was only in the convenience path everyone actually uses.
+This is the crux of the whole thing. Autotools projects ship a generated tarball that differs from the source tree — it contains `configure` scripts and `m4` macros produced by `autoreconf`. Almost nobody diffs the shipped tarball against the repository, because for decades there was no reason to. The attacker exploited that gap. The single detail that reframes the whole incident: if you had downloaded the source from Git and built it yourself, you would not have been vulnerable. The poison was only in the convenience path everyone actually uses.
 
 ## How the Payload Actually Fired
 
