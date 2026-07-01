@@ -65,6 +65,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
 │   └── resume.html      # Interactive resume
 └── static/              # Static files (CSS, JS, images)
     ├── css/
+    ├── images/          # Blog hero images and other assets
     └── js/
 ```
 
