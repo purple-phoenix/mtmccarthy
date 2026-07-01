@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Matt McCarthy — Blog</title>
+        <link>{{ site_url }}/blog</link>
+        <description>Articles by Matt McCarthy on software engineering, AI tooling, algorithms, and lessons learned building real systems.</description>
+        <language>en-us</language>
+        <lastBuildDate>{{ last_build }}</lastBuildDate>
+        <atom:link href="{{ site_url }}/feed.xml" rel="self" type="application/rss+xml"/>
+{%- for item in items %}
+        <item>
+            <title>{{ item.title }}</title>
+            <link>{{ item.link }}</link>
+            <guid isPermaLink="true">{{ item.link }}</guid>
+            <pubDate>{{ item.pub_date }}</pubDate>
+            {%- if item.category %}
+            <category>{{ item.category }}</category>
+            {%- endif %}
+            {%- if item.description %}
+            <description>{{ item.description }}</description>
+            {%- endif %}
+        </item>
+{%- endfor %}
+    </channel>
+</rss>
