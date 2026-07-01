@@ -2,6 +2,8 @@
 
 {% block title %}{{ project.title }} - Matt McCarthy{% endblock %}
 
+{% block meta_description %}{{ project.description or page_description }}{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
 <section class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white">

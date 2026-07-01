@@ -6,9 +6,9 @@
 
 {% block og_type %}article{% endblock %}
 
-{% block og_image %}{% if post.image_url %}{{ post.image_url if post.image_url.startswith('http') else site_url ~ post.image_url }}{% else %}{{ super() }}{% endif %}{% endblock %}
+{% block og_image %}{% if post.image_url and not post.image_url.lower().endswith('.svg') %}{{ post.image_url if post.image_url.startswith('http') else site_url ~ post.image_url }}{% else %}{{ super() }}{% endif %}{% endblock %}
 
-{% block twitter_card %}{{ 'summary_large_image' if post.image_url else 'summary' }}{% endblock %}
+{% block twitter_card %}{{ 'summary_large_image' if post.image_url and not post.image_url.lower().endswith('.svg') else 'summary' }}{% endblock %}
 
 {% block structured_data %}
 {% set post_ld = {

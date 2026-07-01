@@ -117,11 +117,6 @@ PAGE_META_DESCRIPTIONS = {
 def inject_seo():
     """Expose the canonical origin and a per-page meta description to templates."""
     description = PAGE_META_DESCRIPTIONS.get(request.endpoint, DEFAULT_META_DESCRIPTION)
-    if request.endpoint == 'project_detail':
-        slug = (request.view_args or {}).get('slug')
-        project = next((p for p in load_projects() if p.get('slug') == slug), None)
-        if project and project.get('description'):
-            description = project['description']
     return {'site_url': SITE_URL, 'page_description': description}
 
 def load_blog_posts():
