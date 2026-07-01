@@ -171,7 +171,7 @@ def fetch_chess_com_games(username='mtmccarthy14', max_games=10):
                     pgn_text = games_response.text
                     games = parse_pgn_games(pgn_text)
                     all_games.extend(games)
-            except:
+            except Exception:
                 continue
         
         # Sort by date and return most recent
@@ -225,7 +225,7 @@ def parse_pgn_games(pgn_text):
                             if '/live/' in value:
                                 game_id = value.split('/live/')[-1].split('?')[0]
                                 current_game['url'] = f"https://www.chess.com/game/live/{game_id}"
-                except:
+                except Exception:
                     continue
         
         # Store game if we have the required info
@@ -274,7 +274,7 @@ def fetch_lichess_games(username='midnightconquer', max_games=10):
                         'url': f"https://lichess.org/{game_data.get('id', '')}"
                     }
                     games.append(game)
-                except:
+                except Exception:
                     continue
         
         return games
