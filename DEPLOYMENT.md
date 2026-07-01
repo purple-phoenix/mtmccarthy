@@ -38,6 +38,7 @@ Ensure your code is pushed to GitHub, GitLab, or Bitbucket.
 Add these in the Render dashboard:
 - `SECRET_KEY` (required): Generate a secure key for production, e.g. `python -c 'import secrets; print(secrets.token_hex(32))'`
 - `GA_MEASUREMENT_ID` (optional): Google Analytics measurement ID; analytics are omitted when unset
+- `SITE_URL` (optional): Canonical origin for absolute URLs (canonicals, OG tags, sitemap, RSS feed). Defaults to `https://mattmccarthy.dev` — only set it if deploying to a different origin.
 
 ### Step 5: Deploy
 Click "Create Web Service" and Render will:
@@ -79,6 +80,7 @@ Before deploying to production:
 - [ ] Test all routes locally with gunicorn
 - [ ] Verify static files load correctly
 - [ ] Check that all blog posts and projects load
+- [ ] Verify `/sitemap.xml`, `/robots.txt`, and `/feed.xml` render with the correct origin (set `SITE_URL` if not `https://mattmccarthy.dev`)
 - [ ] Test on mobile devices
 
 ### Updating SECRET_KEY

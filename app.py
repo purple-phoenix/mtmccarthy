@@ -1,7 +1,8 @@
-from flask import Flask, render_template, abort
+from flask import Flask, render_template, abort, request, Response
 import os
 import markdown
-from datetime import datetime
+from datetime import datetime, timezone
+from email.utils import format_datetime
 import json
 import glob
 import requests
@@ -83,6 +84,40 @@ def _parse_blog_post(file_path):
     metadata['body'] = md.convert(body)
     metadata['date'] = datetime.strptime(metadata.get('date', '2024-01-01'), '%Y-%m-%d')
     return metadata
+
+# Canonical production origin (see content/projects.json entry for this site).
+# Override with the SITE_URL environment variable if the deployed origin changes.
+SITE_URL = os.environ.get('SITE_URL', 'https://mattmccarthy.dev').rstrip('/')
+
+DEFAULT_META_DESCRIPTION = ('Software engineer focused on automation, reliability, and thoughtful '
+                            'system design. Interested in building durable software, teaching, and '
+                            'long-term growth.')
+
+# Per-endpoint meta descriptions; blog posts and project pages derive theirs
+# from their own content instead.
+PAGE_META_DESCRIPTIONS = {
+    'index': 'Personal site of Matt McCarthy, a software engineer writing about automation, '
+             'reliability, AI tooling, and thoughtful system design.',
+    'about': 'About Matt McCarthy: software engineering background, experience, and the '
+             'interests that shape how he builds software.',
+    'blog': 'Articles by Matt McCarthy on software engineering, AI tooling, algorithms, and '
+            'lessons learned building real systems.',
+    'projects': 'Selected software projects by Matt McCarthy, from machine learning '
+                'experiments to production web applications.',
+    'resume': 'Resume of Matt McCarthy: professional experience, skills, and education in '
+              'software engineering.',
+    'chess': 'Matt McCarthy on chess: recent rated games from Chess.com and Lichess.',
+    'jiu_jitsu': 'Matt McCarthy on Brazilian Jiu Jitsu: training, progress, and what the mat '
+                 'teaches about learning hard things.',
+    'strength_training': 'Matt McCarthy on strength training: programming, consistency, and '
+                         'long-term physical development.',
+}
+
+@app.context_processor
+def inject_seo():
+    """Expose the canonical origin and a per-page meta description to templates."""
+    description = PAGE_META_DESCRIPTIONS.get(request.endpoint, DEFAULT_META_DESCRIPTION)
+    return {'site_url': SITE_URL, 'page_description': description}
 
 def load_blog_posts():
     """Load all blog posts from markdown files"""
@@ -387,6 +422,58 @@ def jiu_jitsu():
 @app.route('/strength-training')
 def strength_training():
     return render_template('strength-training.html')
+
+# Endpoints that should not appear in the sitemap
+SITEMAP_EXCLUDED_ENDPOINTS = {'static', 'robots_txt', 'sitemap_xml', 'feed_xml'}
+
+@app.route('/robots.txt')
+def robots_txt():
+    body = f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n"
+    return Response(body, mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    posts = load_blog_posts()
+    latest = posts[0]['date'].strftime('%Y-%m-%d') if posts else None
+
+    pages = []
+    # Fixed public pages, discovered from the routing table (zero-argument GET rules)
+    static_paths = sorted(
+        str(rule) for rule in app.url_map.iter_rules()
+        if rule.endpoint not in SITEMAP_EXCLUDED_ENDPOINTS
+        and 'GET' in rule.methods and not rule.arguments
+    )
+    for path in static_paths:
+        # Homepage and blog index surface the latest posts, so use the newest post date
+        lastmod = latest if path in ('/', '/blog') else None
+        pages.append({'loc': f'{SITE_URL}{path}', 'lastmod': lastmod})
+
+    for project in load_projects():
+        if project.get('slug'):
+            pages.append({'loc': f"{SITE_URL}/projects/{project['slug']}", 'lastmod': None})
+
+    for post in posts:
+        pages.append({'loc': f"{SITE_URL}/blog/{post['slug']}",
+                      'lastmod': post['date'].strftime('%Y-%m-%d')})
+
+    xml = render_template('sitemap.xml', pages=pages)
+    return Response(xml, mimetype='application/xml')
+
+@app.route('/feed.xml')
+def feed_xml():
+    posts = load_blog_posts()
+    items = []
+    for post in posts:
+        items.append({
+            'title': post.get('title', post['slug']),
+            'link': f"{SITE_URL}/blog/{post['slug']}",
+            'description': post.get('excerpt', ''),
+            'category': post.get('category'),
+            'pub_date': format_datetime(post['date'].replace(tzinfo=timezone.utc)),
+        })
+    last_build = items[0]['pub_date'] if items else format_datetime(datetime.now(timezone.utc))
+    xml = render_template('feed.xml', items=items, last_build=last_build)
+    return Response(xml, mimetype='application/rss+xml')
 
 if __name__ == '__main__':
     # Create necessary directories

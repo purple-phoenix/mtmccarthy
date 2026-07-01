@@ -2,6 +2,33 @@
 
 {% block title %}{{ post.title }} - Matt McCarthy{% endblock %}
 
+{% block meta_description %}{{ post.excerpt or post.body|striptags|truncate(160) }}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+
+{% block og_image %}{% if post.image_url and not post.image_url.lower().endswith('.svg') %}{{ post.image_url if post.image_url.startswith('http') else site_url ~ post.image_url }}{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block twitter_card %}{{ 'summary_large_image' if post.image_url and not post.image_url.lower().endswith('.svg') else 'summary' }}{% endblock %}
+
+{% block structured_data %}
+{% set post_ld = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    'headline': post.title,
+    'description': post.excerpt or post.body|striptags|truncate(160),
+    'datePublished': post.date.strftime('%Y-%m-%d'),
+    'dateModified': post.date.strftime('%Y-%m-%d'),
+    'url': site_url ~ request.path,
+    'mainEntityOfPage': {'@type': 'WebPage', '@id': site_url ~ request.path},
+    'author': {'@type': 'Person', 'name': 'Matt McCarthy', 'url': site_url ~ '/'},
+    'publisher': {'@type': 'Person', 'name': 'Matt McCarthy', 'url': site_url ~ '/'}
+} %}
+{% if post.image_url %}
+{% set _ = post_ld.update({'image': post.image_url if post.image_url.startswith('http') else site_url ~ post.image_url}) %}
+{% endif %}
+<script type="application/ld+json">{{ post_ld|tojson }}</script>
+{% endblock %}
+
 {% block content %}
 <!-- Post Header -->
 <section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
