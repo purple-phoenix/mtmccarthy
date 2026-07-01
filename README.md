@@ -82,7 +82,12 @@ pushes to `main`.
 .
 ├── app.py                 # Main Flask application
 ├── requirements.txt       # Python dependencies
+├── requirements-dev.txt   # Test dependencies (pytest, Playwright)
+├── pytest.ini             # Pytest configuration (e2e marker)
 ├── README.md             # This file
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # CI: unit + Playwright smoke tests
 ├── content/
 │   ├── blog/            # Blog post markdown files
 │   └── projects.json    # Projects data
@@ -96,10 +101,11 @@ pushes to `main`.
 │   ├── resume.html      # Interactive resume
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
-└── static/              # Static files (CSS, JS, images)
-    ├── css/
-    ├── images/          # Blog hero images and other assets
-    └── js/
+├── static/              # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── images/          # Blog hero images and other assets
+│   └── js/
+└── tests/               # Pytest suite (tests/e2e/ = browser smoke tests)
 ```
 
 ## Customization
