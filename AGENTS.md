@@ -11,6 +11,14 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - `SECRET_KEY` env var is required whenever `app.py` is *imported* (gunicorn, `flask run`, tests); only `python app.py` (`__main__`) generates an ephemeral dev key. Set `SECRET_KEY=anything` when importing the app in scripts/tests.
 - Port 8000 is often already occupied on the dev machine by a long-running instance of this site. For testing, run `flask --app app run --no-reload -p <other-port>` — a 200 from port 8000 may be coming from the old process, not your code.
 
+## Testing
+
+- `pip install -r requirements-dev.txt`, then `pytest -m "not e2e"` for the fast suite; `python -m playwright install chromium` once, then `pytest -m e2e` for the browser smoke tests. CI (`.github/workflows/ci.yml`) runs both on PRs and pushes to main.
+- Tests must stay offline: an autouse fixture in `tests/conftest.py` patches `requests.get` to raise, so chess tests monkeypatch `app.requests` per-test with fakes; the Playwright suite stubs all non-localhost requests (CDNs) with empty bodies keyed by resource type.
+- `tests/conftest.py` sets `SECRET_KEY` before importing `app` and resets `_post_cache`/`_games_cache` around every test; blog tests point `app.BLOG_DIR` at a tmp dir and control mtimes with `os.utime` (never sleep for cache invalidation).
+- `tests/test_static_refs.py` fails on any template/front-matter/projects.json reference to a file missing under `static/` — add the asset before referencing it.
+- Route tests assert known pages return 200 but deliberately don't enumerate the route inventory or exact head contents, so new routes/meta tags can land without breaking them. Keep it that way.
+
 ## Content pipeline
 
 - Blog posts are Markdown files in `content/blog/` with YAML front-matter (`title`, `date`, `category`, `excerpt`, `read_time`, optional `image_url`). The slug is the filename.

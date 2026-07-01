@@ -13,6 +13,9 @@ ENV/
 instance/
 .webassets-cache
 
+# Tests
+.pytest_cache/
+
 # IDE
 .vscode/
 .idea/
