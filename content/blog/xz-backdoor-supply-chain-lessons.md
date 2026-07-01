@@ -15,14 +15,14 @@ I've spent time picking this incident apart because it's the clearest real-world
 
 ## The Part That Should Keep You Up at Night
 
-Here's the detail that reframes everything. The malicious payload was not in the XZ Utils Git repository in any form you'd find by reading the source. If you cloned the repo and read the code, it looked clean.
+Here's the detail that reframes everything. The pieces of the malicious payload that did live in the XZ Utils Git repository were disguised as binary test fixtures — files nobody reads — and the mechanism that turned them into a backdoor wasn't in the repository at all. If you cloned the repo and read the source, nothing looked wrong.
 
-The backdoor lived in the **release tarball** — the packaged `.tar.gz` that maintainers publish and that distributions actually download to build their packages. And it was staged, in pieces, in places nobody thinks to review:
+The backdoor was armed through the **release tarball** — the packaged `.tar.gz` that maintainers publish and that distributions actually download to build their packages. And it was staged, in pieces, in places nobody thinks to review:
 
-- Two "test" files in the `tests/files/` directory that were supposed to be corrupt/malformed compression samples: `bad-3-corrupt_lzma2.xz` and `good-large_compressed.lzma`. To a reviewer, these are exactly what a compression library's test suite *should* contain — deliberately broken binary blobs used to exercise error handling. In reality they held the obfuscated, compressed stages of the exploit.
-- A modified `build-to-host.m4` macro in the tarball's build tooling — a file that exists in the generated tarball but not in the tracked repository. During `./configure`, this macro quietly extracted and decompressed the payload from those "test" files and injected it into the build.
+- Two "test" files, committed to the Git repository itself under `tests/files/`, that were supposed to be corrupt/malformed compression samples: `bad-3-corrupt_lzma2.xz` and `good-large_compressed.lzma`. To a reviewer, these are exactly what a compression library's test suite *should* contain — deliberately broken binary blobs used to exercise error handling. In reality they held the obfuscated, compressed stages of the exploit, hiding in plain sight in version control.
+- A modified `build-to-host.m4` macro in the tarball's build tooling — the one piece that existed only in the generated tarball, never in the tracked repository. During `./configure`, this macro quietly extracted and decompressed the payload from those "test" files and injected it into the build.
 
-This is the crux of the whole thing. Autotools projects ship a generated tarball that differs from the source tree — it contains `configure` scripts and `m4` macros produced by `autoreconf`. Almost nobody diffs the shipped tarball against the repository, because for decades there was no reason to. The attacker exploited that gap. The single detail that reframes the whole incident: if you had downloaded the source from Git and built it yourself, you would not have been vulnerable. The poison was only in the convenience path everyone actually uses.
+This is the crux of the whole thing. Autotools projects ship a generated tarball that differs from the source tree — it contains `configure` scripts and `m4` macros produced by `autoreconf`. Almost nobody diffs the shipped tarball against the repository, because for decades there was no reason to. The attacker exploited that gap. The result borders on paradox: even though the payload's stages sat in the repository, if you had downloaded the source from Git and built it yourself, you would not have been vulnerable — without the tarball's injector, those staged files were inert. The poison was only armed in the convenience path everyone actually uses.
 
 ## How the Payload Actually Fired
 
@@ -52,7 +52,7 @@ It failed only because of a performance regression an unusually careful engineer
 We see supply-chain incidents regularly now — typosquatted npm packages, compromised credentials pushing malicious updates, dependency confusion. The XZ backdoor stands apart for a few reasons that are worth naming precisely:
 
 - **It targeted the trust model, not a bug.** There was no vulnerability to patch in the traditional sense. The attacker didn't exploit a flaw; they *became* the trusted party. You can't scan your way out of that.
-- **The audited artifact and the shipped artifact diverged.** Source review — the thing we hold up as open source's core safety property — was structurally bypassed because the payload was never in the source being reviewed.
+- **The audited artifact and the shipped artifact diverged.** Source review — the thing we hold up as open source's core safety property — was structurally bypassed: the payload's stages hid in binary fixtures no review process reads, and the injector that wired them into the build never appeared in the reviewed source at all.
 - **It hid in exactly the files reviewers are trained to skip.** Binary test fixtures and generated build macros are the last place anyone looks, which is precisely why they were chosen.
 - **The patience was industrial.** A two-year investment in a single low-profile dependency implies a well-resourced actor treating open-source maintainership as an attack surface to be cultivated. This wasn't a smash-and-grab.
 
