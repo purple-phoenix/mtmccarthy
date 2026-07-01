@@ -10,6 +10,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
 - 📄 **Resume**: Professional resume with timeline view
 - 📱 **Responsive Design**: Mobile-first design using Tailwind CSS
 - 🎨 **Modern UI**: Polished interface with smooth animations and gradients
+- 🔍 **SEO**: Per-page meta descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD structured data, plus dynamically generated `/sitemap.xml`, `/robots.txt`, and `/feed.xml` (RSS)
 
 ## Tech Stack
 
@@ -70,7 +71,9 @@ A modern, professional personal website built with Flask featuring a blog, proje
 │   ├── blog.html        # Blog listing
 │   ├── blog_post.html   # Individual blog post
 │   ├── projects.html    # Projects showcase
-│   └── resume.html      # Interactive resume
+│   ├── resume.html      # Interactive resume
+│   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
+│   └── feed.xml         # RSS feed template (served at /feed.xml)
 └── static/              # Static files (CSS, JS, images)
     ├── css/
     └── js/
@@ -94,7 +97,7 @@ read_time: "5"
 Your blog content here in markdown...
 ```
 
-You can also add an optional `image_url` for a hero image — only if it points at a real file under `static/images/` (posts without one render fine without an image).
+You can also add an optional `image_url` for a hero image — only if it points at a real file under `static/images/` (posts without one render fine without an image). The `excerpt` doubles as the post's meta description, social-share (OG/Twitter) description, and RSS summary; a non-SVG `image_url` also becomes the post's social-share image.
 
 ### Adding Projects
 
@@ -139,6 +142,8 @@ variable (see step 4 of Installation) — set it on whichever platform you use.
 ### Deploying to Render (Production)
 
 This site is deployed on Render with gunicorn. There is no `Procfile` or `runtime.txt` — the Start Command (`gunicorn app:app`) and Python version are configured in the Render dashboard. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full guide.
+
+Absolute URLs (canonicals, OG tags, sitemap, RSS feed) are built from `SITE_URL`, which defaults to `https://mattmccarthy.dev` — set the `SITE_URL` environment variable if the site is served from a different origin.
 
 ### Deploying to PythonAnywhere
 
