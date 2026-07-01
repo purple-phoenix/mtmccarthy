@@ -7,7 +7,6 @@ import json
 
 import pytest
 
-import app as site
 from conftest import PROJECT_ROOT
 
 PUBLIC_PAGES = [
