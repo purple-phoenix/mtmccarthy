@@ -447,9 +447,6 @@
                         <a href="https://www.linkedin.com/in/matt-mccarthy-96b64598/" target="_blank" class="text-gray-400 hover:text-white transition-colors">
                             <i class="fab fa-linkedin text-2xl"></i>
                         </a>
-                        <a href="https://twitter.com" target="_blank" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-twitter text-2xl"></i>
-                        </a>
                         <a href="mailto:matttmccarthy66@gmail.com" class="text-gray-400 hover:text-white transition-colors">
                             <i class="fas fa-envelope text-2xl"></i>
                         </a>
@@ -457,12 +454,15 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Matt McCarthy. All rights reserved.</p>
+                <p>&copy; <span id="footer-year">2026</span> Matt McCarthy. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
+        // Keep footer copyright year current
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
         // Mobile menu toggle
         document.getElementById('mobile-menu-btn')?.addEventListener('click', function() {
             const menu = document.getElementById('mobile-menu');

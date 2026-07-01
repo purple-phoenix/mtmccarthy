@@ -4,7 +4,6 @@ date: "2026-04-06"
 category: "AI & Automation"
 excerpt: "I gave Claude a one-sentence brief about health insurance and got back a structured analysis that would have taken me a weekend. Here's what the workflow looked like."
 read_time: "8"
-image_url: "/static/images/health-plan-dashboard.png"
 ---
 
 Health insurance is one of those problems that's specifically designed to resist understanding. You've got tiers, deductibles, coinsurance, out-of-pocket maximums, HSA eligibility, network restrictions, state mandates — and the information is spread across a dozen carrier websites, each with its own terminology and PDF maze.
@@ -46,8 +45,6 @@ This was the most valuable part. Instead of just comparing premiums and deductib
 **Worst case** — hit the out-of-pocket maximum. Employer plan: about $13,000. Best marketplace option: around $22,800.
 
 The employer plan won every scenario by a wide margin. And that's before accounting for the tax advantages — pre-tax premiums, employer HSA contribution, and HSA tax savings add up to about $5,000/year in benefits that marketplace plans simply can't offer.
-
-![Health plan comparison dashboard](/static/images/health-plan-dashboard.png)
 
 ## The One Exception
 

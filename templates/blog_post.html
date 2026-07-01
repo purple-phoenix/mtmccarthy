@@ -35,13 +35,13 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {% if post.image_url %}
         <div class="mb-8 rounded-lg overflow-hidden">
-            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto">
+            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto" onerror="this.parentElement.style.display='none'">
         </div>
         {% endif %}
         <div class="blog-content">
             {{ post.body|safe }}
         </div>
-        
+
         <!-- Secretary Problem Visualization -->
         {% if post.slug == 'secretary-problem-hiring' %}
         <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
