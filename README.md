@@ -43,7 +43,7 @@ A modern, professional personal website built with Flask featuring a blog, proje
    ```
 
 5. **Visit the website**
-   Open your browser and navigate to `http://localhost:5000`
+   Open your browser and navigate to `http://localhost:8000`
 
 ## Project Structure
 

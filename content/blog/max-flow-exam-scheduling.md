@@ -4,7 +4,6 @@ date: "2026-04-04"
 category: "Algorithms"
 excerpt: "How do you assign exams to rooms and proctors simultaneously? Build a flow network, run Edmonds-Karp, and read off the assignments — or discover exactly why it's impossible."
 read_time: "15"
-image_url: "/static/images/max-flow-exam-scheduling.png"
 ---
 
 It's finals week. You're the department coordinator, and you have 20 exams to schedule. There are 15 rooms available and 6 proctors on duty. Each exam needs exactly one room, each room can hold at most one exam, and each proctor can monitor up to 5 exams. Can you make it work?

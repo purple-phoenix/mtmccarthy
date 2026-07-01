@@ -21,7 +21,7 @@
                 <a href="/blog/{{ post.slug }}" class="block cursor-pointer">
                 <div class="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative overflow-hidden">
                     {% if post.image_url %}
-                    <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
+                    <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
                     {% endif %}
                 </div>
                 </a>

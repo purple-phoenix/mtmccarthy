@@ -1,10 +1,10 @@
 # Deployment Guide
 
-This guide covers deploying your Flask application to Render (recommended) and Vercel.
+This guide covers deploying your Flask application to Render.
 
-## 🎯 Recommendation: Render
+## 🎯 Why Render
 
-**Render is the better choice for Flask applications** because:
+**Render is a good fit for Flask applications** because:
 - ✅ Designed for traditional web apps with persistent processes
 - ✅ Minimal configuration required
 - ✅ No code changes needed
@@ -12,7 +12,7 @@ This guide covers deploying your Flask application to Render (recommended) and V
 - ✅ Free tier available with automatic SSL
 - ✅ Easy database integration if needed later
 
-## 🚀 Deploying to Render (Recommended)
+## 🚀 Deploying to Render
 
 ### Step 1: Prepare Your Repository
 Ensure your code is pushed to GitHub, GitLab, or Bitbucket.
@@ -49,49 +49,10 @@ Render automatically deploys when you push to your main branch!
 
 ---
 
-## 📦 Deploying to Vercel (Alternative)
-
-**Note**: Vercel is serverless-first and less ideal for Flask apps. Use only if you prefer serverless architecture.
-
-### Step 1: Install Vercel CLI
-```bash
-npm i -g vercel
-```
-
-### Step 2: Deploy
-```bash
-vercel
-```
-
-Follow the prompts, or deploy directly:
-```bash
-vercel --prod
-```
-
-### Step 3: Connect GitHub (Optional)
-In the Vercel dashboard, you can connect your GitHub repo for automatic deployments.
-
-### Limitations on Vercel
-- Serverless functions have execution time limits
-- Cold starts can cause slower initial requests
-- File system writes may not persist between invocations
-- Some Flask features may need adaptation
-
----
-
 ## 🔧 Configuration Files Explained
 
-### `Procfile` (Render/Heroku)
-Specifies the command to run your app. Render uses this or the Start Command you specify.
-
-### `runtime.txt` (Render)
-Specifies the Python version. Render will use Python 3.11.7.
-
-### `vercel.json` (Vercel)
-Configures Vercel to use the Python runtime for your Flask app.
-
 ### `requirements.txt`
-Updated to include `gunicorn` which is needed for production deployment.
+Lists the Python dependencies, including `gunicorn` which is needed for production deployment. This is the only deployment configuration file in the repo — the run command and Python version are configured in the Render dashboard (see the Start Command above), so no `Procfile` or `runtime.txt` is needed.
 
 ---
 
@@ -121,19 +82,14 @@ Before deploying to production:
 
 ### Updating SECRET_KEY
 For Render, set it as an environment variable in the dashboard.
-For Vercel, add it in the project settings.
 
 ---
 
-## 📊 Cost Comparison
+## 📊 Cost
 
 ### Render
 - **Free Tier**: 750 hours/month (enough for always-on small apps)
 - **Paid**: $7/month for starter plan (better performance)
-
-### Vercel
-- **Free Tier**: Generous for serverless functions
-- **Paid**: Usage-based pricing
 
 For traditional Flask apps, Render's free tier is usually sufficient.
 
@@ -146,15 +102,10 @@ For traditional Flask apps, Render's free tier is usually sufficient.
 - **App won't start**: Verify Start Command is correct
 - **Static files not loading**: Ensure paths in templates are correct
 
-### Vercel Issues
-- **504 timeout**: Serverless functions have time limits
-- **Import errors**: Check that all dependencies are in requirements.txt
-
 ---
 
 ## Need Help?
 
 - Render Docs: https://render.com/docs
-- Vercel Docs: https://vercel.com/docs
 - Flask Deployment: https://flask.palletsprojects.com/en/latest/deploying/
 

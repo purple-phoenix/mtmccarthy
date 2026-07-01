@@ -4,7 +4,6 @@ date: "2026-04-01"
 category: "Algorithms"
 excerpt: "How do you find the maximum flow through a network? Explore Ford-Fulkerson, Edmonds-Karp, and how to build intuition with working Python code."
 read_time: "14"
-image_url: "/static/images/max-flow-ford-fulkerson.png"
 ---
 
 Imagine a city's water distribution system: a pumping station connects through a tangle of pipes to a reservoir on the other side of town. Each pipe has a maximum capacity — some can handle 10 gallons per second, others only 3. You want to push as much water as possible from the station to the reservoir. How much can you actually move?

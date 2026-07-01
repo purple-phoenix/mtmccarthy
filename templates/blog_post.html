@@ -35,7 +35,7 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {% if post.image_url %}
         <div class="mb-8 rounded-lg overflow-hidden">
-            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto">
+            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto" onerror="this.parentElement.style.display='none'">
         </div>
         {% endif %}
         <div class="blog-content">

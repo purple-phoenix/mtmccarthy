@@ -4,7 +4,6 @@ date: "2026-04-01"
 category: "Algorithms"
 excerpt: "The minimum cut of a network equals its maximum flow — one of the most elegant duality results in computer science. Here's how it works and how to find it."
 read_time: "13"
-image_url: "/static/images/min-cut-max-flow-theorem.png"
 ---
 
 Here's a different question about the same water pipe network: instead of asking how much flow you can push through, ask how little you'd have to destroy to stop *any* flow from getting through at all. What's the cheapest set of pipes to cut that completely disconnects the source from the reservoir?
