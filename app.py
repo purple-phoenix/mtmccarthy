@@ -5,15 +5,32 @@ from datetime import datetime
 import json
 import glob
 import requests
-from functools import lru_cache
+import secrets
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 # Cache for chess games (5 minute TTL)
 _games_cache = {'data': None, 'timestamp': 0}
 CACHE_TTL = 300  # 5 minutes
+CHESS_API_TIMEOUT = 3  # seconds per external request
+CHESS_FETCH_DEADLINE = 8  # max seconds a page load waits for game data overall
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+
+_secret_key = os.environ.get('SECRET_KEY')
+if not _secret_key:
+    if __name__ == '__main__':
+        # Local dev (`python app.py`): use a throwaway key. Sessions won't
+        # survive a restart, which is fine for development.
+        _secret_key = secrets.token_hex(32)
+    else:
+        # Production servers (e.g. `gunicorn app:app`) import this module,
+        # so fail loudly instead of running with a missing key.
+        raise RuntimeError(
+            'SECRET_KEY environment variable is not set. '
+            'Set it before starting the server in production.'
+        )
+app.config['SECRET_KEY'] = _secret_key
 
 @app.context_processor
 def inject_ga_measurement_id():
@@ -23,49 +40,71 @@ def inject_ga_measurement_id():
 BLOG_DIR = 'content/blog'
 PROJECTS_FILE = 'content/projects.json'
 
+# Parsed blog posts keyed by file path, invalidated per-file by mtime so
+# edits show up without a restart. Values are (mtime, post_dict_or_None).
+_post_cache = {}
+
+def _parse_blog_post(file_path):
+    """Parse a single markdown blog post, or return None if it has no front matter."""
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Parse front matter
+    if not content.startswith('---'):
+        return None
+    parts = content.split('---', 2)
+    if len(parts) < 3:
+        return None
+    front_matter = parts[1].strip()
+    body = parts[2].strip()
+
+    # Simple front matter parsing
+    metadata = {}
+    for line in front_matter.split('\n'):
+        if ':' in line:
+            key, value = line.split(':', 1)
+            metadata[key.strip()] = value.strip().strip('"\'')
+
+    metadata['slug'] = os.path.splitext(os.path.basename(file_path))[0]
+    # Configure markdown with extensions
+    md = markdown.Markdown(extensions=[
+        'fenced_code',
+        'tables',
+        'codehilite',
+        'nl2br',
+        'sane_lists'
+    ], extension_configs={
+        'codehilite': {
+            'css_class': 'codehilite',
+            'use_pygments': True,
+            'noclasses': False
+        }
+    })
+    metadata['body'] = md.convert(body)
+    metadata['date'] = datetime.strptime(metadata.get('date', '2024-01-01'), '%Y-%m-%d')
+    return metadata
+
 def load_blog_posts():
     """Load all blog posts from markdown files"""
     posts = []
     if not os.path.exists(BLOG_DIR):
         return posts
-    
+
     for file_path in glob.glob(os.path.join(BLOG_DIR, '*.md')):
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            
-        # Parse front matter
-        if content.startswith('---'):
-            parts = content.split('---', 2)
-            if len(parts) >= 3:
-                front_matter = parts[1].strip()
-                body = parts[2].strip()
-                
-                # Simple front matter parsing
-                metadata = {}
-                for line in front_matter.split('\n'):
-                    if ':' in line:
-                        key, value = line.split(':', 1)
-                        metadata[key.strip()] = value.strip().strip('"\'')
-                
-                metadata['slug'] = os.path.splitext(os.path.basename(file_path))[0]
-                # Configure markdown with extensions
-                md = markdown.Markdown(extensions=[
-                    'fenced_code',
-                    'tables',
-                    'codehilite',
-                    'nl2br',
-                    'sane_lists'
-                ], extension_configs={
-                    'codehilite': {
-                        'css_class': 'codehilite',
-                        'use_pygments': True,
-                        'noclasses': False
-                    }
-                })
-                metadata['body'] = md.convert(body)
-                metadata['date'] = datetime.strptime(metadata.get('date', '2024-01-01'), '%Y-%m-%d')
-                posts.append(metadata)
-    
+        try:
+            mtime = os.path.getmtime(file_path)
+        except OSError:
+            continue  # file removed between glob and stat
+        cached = _post_cache.get(file_path)
+        if cached is None or cached[0] != mtime:
+            try:
+                cached = (mtime, _parse_blog_post(file_path))
+            except OSError:
+                continue  # file removed between stat and open
+            _post_cache[file_path] = cached
+        if cached[1] is not None:
+            posts.append(cached[1])
+
     # Sort by date, newest first
     posts.sort(key=lambda x: x['date'], reverse=True)
     return posts
@@ -113,7 +152,7 @@ def fetch_chess_com_games(username='mtmccarthy14', max_games=10):
         # Get available archives
         archives_url = f'https://api.chess.com/pub/player/{username}/games/archives'
         headers = {'User-Agent': 'MattMcCarthy.dev/1.0'}
-        response = requests.get(archives_url, headers=headers, timeout=5)
+        response = requests.get(archives_url, headers=headers, timeout=CHESS_API_TIMEOUT)
         
         if response.status_code != 200:
             return []
@@ -126,13 +165,13 @@ def fetch_chess_com_games(username='mtmccarthy14', max_games=10):
         all_games = []
         for archive_url in archives[-2:]:
             try:
-                games_response = requests.get(f"{archive_url}/pgn", headers=headers, timeout=5)
+                games_response = requests.get(f"{archive_url}/pgn", headers=headers, timeout=CHESS_API_TIMEOUT)
                 if games_response.status_code == 200:
                     # Parse PGN to extract game info
                     pgn_text = games_response.text
                     games = parse_pgn_games(pgn_text)
                     all_games.extend(games)
-            except:
+            except Exception:
                 continue
         
         # Sort by date and return most recent
@@ -186,7 +225,7 @@ def parse_pgn_games(pgn_text):
                             if '/live/' in value:
                                 game_id = value.split('/live/')[-1].split('?')[0]
                                 current_game['url'] = f"https://www.chess.com/game/live/{game_id}"
-                except:
+                except Exception:
                     continue
         
         # Store game if we have the required info
@@ -214,7 +253,7 @@ def fetch_lichess_games(username='midnightconquer', max_games=10):
             'perfType': 'blitz,rapid,classical'
         }
         
-        response = requests.get(url, headers=headers, params=params, timeout=5)
+        response = requests.get(url, headers=headers, params=params, timeout=CHESS_API_TIMEOUT)
         
         if response.status_code != 200:
             return []
@@ -235,7 +274,7 @@ def fetch_lichess_games(username='midnightconquer', max_games=10):
                         'url': f"https://lichess.org/{game_data.get('id', '')}"
                     }
                     games.append(game)
-                except:
+                except Exception:
                     continue
         
         return games
@@ -301,26 +340,44 @@ def project_detail(slug):
 def resume():
     return render_template('resume.html')
 
+def fetch_recent_games(max_games=10):
+    """Fetch recent games from both platforms in parallel with a hard deadline.
+
+    Returns whatever arrived in time; a slow or unreachable API just
+    contributes no games, so the page always renders promptly.
+    """
+    executor = ThreadPoolExecutor(max_workers=2)
+    futures = [
+        executor.submit(fetch_chess_com_games, 'mtmccarthy14', 5),
+        executor.submit(fetch_lichess_games, 'midnightconquer', 5),
+    ]
+    deadline = time.monotonic() + CHESS_FETCH_DEADLINE
+    all_games = []
+    for future in futures:
+        try:
+            all_games.extend(future.result(timeout=max(0, deadline - time.monotonic())))
+        except Exception as e:
+            print(f"Error fetching chess games: {e}")
+    executor.shutdown(wait=False, cancel_futures=True)
+
+    # Combine and sort by date
+    all_games.sort(key=lambda x: x.get('date', ''), reverse=True)
+    return all_games[:max_games]
+
 @app.route('/chess')
 def chess():
-    # Check cache
+    # Check cache (empty results are cached too, so a down API
+    # isn't re-queried on every request)
     current_time = time.time()
-    if _games_cache['data'] and (current_time - _games_cache['timestamp']) < CACHE_TTL:
+    if _games_cache['data'] is not None and (current_time - _games_cache['timestamp']) < CACHE_TTL:
         recent_games = _games_cache['data']
     else:
-        # Fetch recent games from both platforms
-        chess_com_games = fetch_chess_com_games('mtmccarthy14', max_games=5)
-        lichess_games = fetch_lichess_games('midnightconquer', max_games=5)
-        
-        # Combine and sort by date
-        all_games = chess_com_games + lichess_games
-        all_games.sort(key=lambda x: x.get('date', ''), reverse=True)
-        recent_games = all_games[:10]
-        
+        recent_games = fetch_recent_games(max_games=10)
+
         # Update cache
         _games_cache['data'] = recent_games
         _games_cache['timestamp'] = current_time
-    
+
     return render_template('chess.html', recent_games=recent_games)
 
 @app.route('/jiu-jitsu')

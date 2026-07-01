@@ -42,6 +42,14 @@ A modern, professional personal website built with Flask featuring a blog, proje
    python app.py
    ```
 
+   The app reads its Flask session key from the `SECRET_KEY` environment
+   variable. When running locally with `python app.py` you can leave it
+   unset and an ephemeral key is generated for you. In production (e.g.
+   `gunicorn app:app`) it is required — the app refuses to start without it:
+   ```bash
+   export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+   ```
+
 5. **Visit the website**
    Open your browser and navigate to `http://localhost:8000`
 
@@ -124,6 +132,9 @@ The website uses Tailwind CSS via CDN. To customize colors, gradients, or styles
 - Or include your own custom CSS in the `static/css/` directory
 
 ## Deployment
+
+The app refuses to start in production without the `SECRET_KEY` environment
+variable (see step 4 of Installation) — set it on whichever platform you use.
 
 ### Deploying to Render (Production)
 
