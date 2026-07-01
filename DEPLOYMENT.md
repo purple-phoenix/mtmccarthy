@@ -37,6 +37,7 @@ Ensure your code is pushed to GitHub, GitLab, or Bitbucket.
 ### Step 4: Set Environment Variables
 Add these in the Render dashboard:
 - `SECRET_KEY` (required): Generate a secure key for production, e.g. `python -c 'import secrets; print(secrets.token_hex(32))'`
+- `GA_MEASUREMENT_ID` (optional): Google Analytics measurement ID; analytics are omitted when unset
 
 ### Step 5: Deploy
 Click "Create Web Service" and Render will:
@@ -58,11 +59,11 @@ Lists the Python dependencies, including `gunicorn` which is needed for producti
 
 ## 🛠️ Local Testing Before Deploy
 
-Test your app locally with gunicorn:
+Test your app locally with gunicorn (`SECRET_KEY` is required whenever the app is imported rather than run with `python app.py`, so set it inline):
 
 ```bash
 pip install gunicorn
-gunicorn app:app
+SECRET_KEY=dev-only-key gunicorn app:app
 ```
 
 Visit `http://localhost:8000` to verify everything works.

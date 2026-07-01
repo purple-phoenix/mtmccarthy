@@ -133,6 +133,9 @@ The website uses Tailwind CSS via CDN. To customize colors, gradients, or styles
 
 ## Deployment
 
+The app refuses to start in production without the `SECRET_KEY` environment
+variable (see step 4 of Installation) — set it on whichever platform you use.
+
 ### Deploying to Render (Production)
 
 This site is deployed on Render with gunicorn. There is no `Procfile` or `runtime.txt` — the Start Command (`gunicorn app:app`) and Python version are configured in the Render dashboard. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full guide.
