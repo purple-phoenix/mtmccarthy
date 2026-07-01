@@ -97,7 +97,10 @@ def load_blog_posts():
             continue  # file removed between glob and stat
         cached = _post_cache.get(file_path)
         if cached is None or cached[0] != mtime:
-            cached = (mtime, _parse_blog_post(file_path))
+            try:
+                cached = (mtime, _parse_blog_post(file_path))
+            except OSError:
+                continue  # file removed between stat and open
             _post_cache[file_path] = cached
         if cached[1] is not None:
             posts.append(cached[1])
