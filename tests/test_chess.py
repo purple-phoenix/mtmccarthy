@@ -5,6 +5,7 @@ timeout/failure fallbacks, the per-request timeout wiring, the overall
 fetch deadline, and the 5-minute result cache (including empty results).
 """
 import json
+import threading
 import time
 
 import pytest
@@ -154,23 +155,27 @@ def test_lichess_connection_error_returns_empty(monkeypatch):
 
 def test_fetch_recent_games_enforces_overall_deadline(monkeypatch):
     """A hung platform contributes nothing; the fast one still gets through."""
-    monkeypatch.setattr(site, 'CHESS_FETCH_DEADLINE', 0.05)
+    monkeypatch.setattr(site, 'CHESS_FETCH_DEADLINE', 0.2)
+
+    release_hung_fetch = threading.Event()
 
     def hung_fetch(*args, **kwargs):
-        time.sleep(0.5)
+        release_hung_fetch.wait(timeout=10)
         return [{'platform': 'Chess.com', 'white': 'too', 'black': 'slow', 'date': '2024.01.01'}]
 
     fast_games = [{'platform': 'Lichess', 'white': 'a', 'black': 'b', 'date': '2024.03.01'}]
     monkeypatch.setattr(site, 'fetch_chess_com_games', hung_fetch)
     monkeypatch.setattr(site, 'fetch_lichess_games', lambda *a, **k: list(fast_games))
 
-    start = time.monotonic()
-    games = site.fetch_recent_games()
-    elapsed = time.monotonic() - start
+    try:
+        start = time.monotonic()
+        games = site.fetch_recent_games()
+        elapsed = time.monotonic() - start
+    finally:
+        release_hung_fetch.set()
 
     assert games == fast_games
-    assert elapsed < 0.4, f'deadline not enforced (took {elapsed:.2f}s)'
-    time.sleep(0.5)  # let the hung worker thread finish before teardown
+    assert elapsed < 2, f'deadline not enforced (took {elapsed:.2f}s)'
 
 
 def test_chess_route_caches_results(client, monkeypatch):
