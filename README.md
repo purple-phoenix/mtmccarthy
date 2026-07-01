@@ -162,11 +162,18 @@ Edit `content/projects.json` to add or modify projects:
 
 ### Styling
 
-The website uses Tailwind CSS via CDN. To customize colors, gradients, or styles:
+The website uses Tailwind CSS compiled ahead of time with the Tailwind CLI into `static/css/main.css` (committed — the server never runs Node). To customize colors, gradients, or styles:
 
-- Modify the `gradient-text` and other CSS classes in `templates/base.html`
+- Modify `gradient-text` and the other custom CSS in `assets/css/tailwind.css`
 - Update Tailwind utility classes in templates
-- Or include your own custom CSS in the `static/css/` directory
+- Then rebuild the stylesheet and commit the result:
+
+```bash
+npm install        # once
+npm run build:css  # or: npm run watch:css while developing
+```
+
+New Tailwind classes must appear in the content globs in `tailwind.config.js` (templates, `static/js/`, blog markdown) or they will be purged from the build.
 
 ## Deployment
 

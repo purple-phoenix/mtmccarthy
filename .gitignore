@@ -27,6 +27,9 @@ instance/
 .DS_Store
 Thumbs.db
 
+# Node (dev-only Tailwind toolchain)
+node_modules/
+
 # Environment variables
 .env
 .env.local

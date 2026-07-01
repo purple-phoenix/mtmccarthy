@@ -1,0 +1,12 @@
+{
+  "name": "mtmccarthy",
+  "private": true,
+  "description": "Dev-only toolchain for building the site's Tailwind CSS (see AGENTS.md). The deployed app is pure Python; static/css/main.css is committed.",
+  "scripts": {
+    "build:css": "tailwindcss -i assets/css/tailwind.css -o static/css/main.css --minify",
+    "watch:css": "tailwindcss -i assets/css/tailwind.css -o static/css/main.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
