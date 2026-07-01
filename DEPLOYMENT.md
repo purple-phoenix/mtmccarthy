@@ -34,9 +34,9 @@ Ensure your code is pushed to GitHub, GitLab, or Bitbucket.
    - **Start Command**: `gunicorn app:app`
    - **Instance Type**: Free (or paid for better performance)
 
-### Step 4: Set Environment Variables (Optional)
-If you need environment variables, add them in the Render dashboard:
-- `SECRET_KEY`: Generate a secure key for production
+### Step 4: Set Environment Variables
+Add these in the Render dashboard:
+- `SECRET_KEY` (required): Generate a secure key for production, e.g. `python -c 'import secrets; print(secrets.token_hex(32))'`
 
 ### Step 5: Deploy
 Click "Create Web Service" and Render will:
@@ -73,7 +73,7 @@ Visit `http://localhost:8000` to verify everything works.
 
 Before deploying to production:
 
-- [ ] Update `SECRET_KEY` in `app.py` or use environment variables
+- [ ] Set the `SECRET_KEY` environment variable (the app refuses to start in production without it)
 - [ ] Set `debug=False` in production
 - [ ] Test all routes locally with gunicorn
 - [ ] Verify static files load correctly
