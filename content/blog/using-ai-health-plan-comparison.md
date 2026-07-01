@@ -46,8 +46,6 @@ This was the most valuable part. Instead of just comparing premiums and deductib
 
 The employer plan won every scenario by a wide margin. And that's before accounting for the tax advantages — pre-tax premiums, employer HSA contribution, and HSA tax savings add up to about $5,000/year in benefits that marketplace plans simply can't offer.
 
-![Health plan comparison dashboard](/static/images/health-plan-dashboard.png)
-
 ## The One Exception
 
 Claude didn't just confirm my bias and call it a day. It flagged an edge case I hadn't considered: state-level fertility mandates.
