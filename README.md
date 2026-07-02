@@ -85,9 +85,14 @@ pushes to `main`.
 ├── requirements-dev.txt   # Test dependencies (pytest, Playwright)
 ├── pytest.ini             # Pytest configuration (e2e marker)
 ├── README.md             # This file
+├── package.json          # Dev-only Tailwind CLI toolchain (not used in deploys)
+├── tailwind.config.js    # Tailwind content globs (purge config)
 ├── .github/
 │   └── workflows/
 │       └── ci.yml       # CI: unit + Playwright smoke tests
+├── assets/
+│   └── css/
+│       └── tailwind.css # Tailwind source + site-wide custom CSS
 ├── content/
 │   ├── blog/            # Blog post markdown files
 │   └── projects.json    # Projects data
@@ -105,7 +110,7 @@ pushes to `main`.
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
 ├── static/              # Static files (CSS, JS, images)
-│   ├── css/
+│   ├── css/             # main.css — built Tailwind stylesheet (committed)
 │   ├── images/          # Blog hero images and other assets
 │   └── js/
 └── tests/               # Pytest suite (tests/e2e/ = browser smoke tests)
@@ -173,7 +178,7 @@ npm install        # once
 npm run build:css  # or: npm run watch:css while developing
 ```
 
-New Tailwind classes must appear in the content globs in `tailwind.config.js` (templates, `static/js/`, blog markdown) or they will be purged from the build.
+New Tailwind classes must appear in the content globs in `tailwind.config.js` (templates, `static/js/`, blog markdown, `content/projects.json`) or they will be purged from the build.
 
 ## Deployment
 
