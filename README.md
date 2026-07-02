@@ -54,13 +54,40 @@ A modern, professional personal website built with Flask featuring a blog, proje
 5. **Visit the website**
    Open your browser and navigate to `http://localhost:8000`
 
+## Running Tests
+
+Install the dev dependencies, then run pytest:
+
+```bash
+pip install -r requirements-dev.txt
+pytest -m "not e2e"   # fast unit/integration tests (no network needed)
+```
+
+The browser smoke tests need a Playwright browser installed once:
+
+```bash
+python -m playwright install chromium
+pytest -m e2e         # boots the app and checks key pages in a real browser
+pytest                # everything
+```
+
+All tests are offline and deterministic: external HTTP (Chess.com, Lichess)
+is mocked in the unit tests, and the smoke tests stub CDN requests. CI
+(`.github/workflows/ci.yml`) runs both suites on every pull request and on
+pushes to `main`.
+
 ## Project Structure
 
 ```
 .
 ├── app.py                 # Main Flask application
 ├── requirements.txt       # Python dependencies
+├── requirements-dev.txt   # Test dependencies (pytest, Playwright)
+├── pytest.ini             # Pytest configuration (e2e marker)
 ├── README.md             # This file
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # CI: unit + Playwright smoke tests
 ├── content/
 │   ├── blog/            # Blog post markdown files
 │   └── projects.json    # Projects data
@@ -77,10 +104,11 @@ A modern, professional personal website built with Flask featuring a blog, proje
 │   ├── resume.html      # Interactive resume
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
-└── static/              # Static files (CSS, JS, images)
-    ├── css/
-    ├── images/          # Blog hero images and other assets
-    └── js/
+├── static/              # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── images/          # Blog hero images and other assets
+│   └── js/
+└── tests/               # Pytest suite (tests/e2e/ = browser smoke tests)
 ```
 
 ## Customization

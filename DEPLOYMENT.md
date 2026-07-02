@@ -54,7 +54,7 @@ Render automatically deploys when you push to your main branch!
 ## 🔧 Configuration Files Explained
 
 ### `requirements.txt`
-Lists the Python dependencies, including `gunicorn` which is needed for production deployment. This is the only deployment configuration file in the repo — the run command and Python version are configured in the Render dashboard (see the Start Command above), so no `Procfile` or `runtime.txt` is needed.
+Lists the Python dependencies, including `gunicorn` which is needed for production deployment. This is the only deployment configuration file in the repo — the run command and Python version are configured in the Render dashboard (see the Start Command above), so no `Procfile` or `runtime.txt` is needed. (`requirements-dev.txt` holds test-only dependencies and is not installed on Render.)
 
 ---
 
@@ -77,6 +77,7 @@ Before deploying to production:
 
 - [ ] Set the `SECRET_KEY` environment variable (the app refuses to start in production without it)
 - [ ] Set `debug=False` in production
+- [ ] Run the test suite (`pytest` — see "Running Tests" in the README) and check CI is green
 - [ ] Test all routes locally with gunicorn
 - [ ] Verify static files load correctly
 - [ ] Check that all blog posts and projects load
