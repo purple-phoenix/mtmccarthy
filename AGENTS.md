@@ -31,6 +31,13 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - Blog posts are parsed markdown cached in-process per file, invalidated by mtime (`_post_cache` in `app.py`); edits to `content/blog/*.md` show up without a restart.
 - `/chess` calls Chess.com and Lichess with per-request timeout `CHESS_API_TIMEOUT` and an overall deadline `CHESS_FETCH_DEADLINE`; results (including empty on failure) are cached for 5 minutes. To test the failure path, run with `https_proxy=http://127.0.0.1:9`.
 
+## CSS / Tailwind build
+
+- Tailwind is a **committed, prebuilt** stylesheet: `static/css/main.css`, built by the Tailwind CLI (v3) from `assets/css/tailwind.css` — no CDN script, and no Node on the server. The deploy (Render, pip-only Build Command) serves the committed file, so **rebuild and commit `static/css/main.css` whenever you add/change Tailwind classes or edit `assets/css/tailwind.css`**: `npm install && npm run build:css` (`npm run watch:css` while developing).
+- Purge content globs live in `tailwind.config.js` and cover `templates/`, `static/js/` (the visualizations build HTML with utility classes in JS strings), `content/blog/*.md` (posts can embed raw HTML), and `content/projects.json`. If Tailwind classes start appearing somewhere new, add the path there — a class missing from the globs silently renders unstyled.
+- Class names must appear as complete string literals to survive purging — never build them by concatenation (`'bg-' + color` breaks; `condition ? 'bg-green-400' : 'bg-orange-400'` is fine).
+- Site-wide custom CSS (`.blog-content`, `.gradient-text`, codehilite colors, viz styles) lives in `assets/css/tailwind.css` after the `@tailwind` directives — not in a `<style>` block in `base.html`. Page-scoped styles (e.g. resume timeline) stay in that template's `extra_head` block.
+
 ## SEO / discoverability
 
 - The canonical production origin is `SITE_URL` in `app.py` (env-overridable, default `https://mattmccarthy.dev`). All absolute URLs (canonicals, OG tags, sitemap, feed) derive from it.

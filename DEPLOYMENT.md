@@ -56,6 +56,9 @@ Render automatically deploys when you push to your main branch!
 ### `requirements.txt`
 Lists the Python dependencies, including `gunicorn` which is needed for production deployment. This is the only deployment configuration file in the repo — the run command and Python version are configured in the Render dashboard (see the Start Command above), so no `Procfile` or `runtime.txt` is needed. (`requirements-dev.txt` holds test-only dependencies and is not installed on Render.)
 
+### `package.json` / `tailwind.config.js`
+Dev-only toolchain for building the site's Tailwind CSS into `static/css/main.css`, which is committed. The deploy never runs Node — the pip-only Build Command above is all Render needs. If you change Tailwind classes or `assets/css/tailwind.css`, rebuild and commit the stylesheet before deploying (`npm install && npm run build:css`).
+
 ---
 
 ## 🛠️ Local Testing Before Deploy
@@ -80,6 +83,7 @@ Before deploying to production:
 - [ ] Run the test suite (`pytest` — see "Running Tests" in the README) and check CI is green
 - [ ] Test all routes locally with gunicorn
 - [ ] Verify static files load correctly
+- [ ] If Tailwind classes or `assets/css/tailwind.css` changed, rebuild and commit `static/css/main.css` (`npm run build:css`)
 - [ ] Check that all blog posts and projects load
 - [ ] Verify `/sitemap.xml`, `/robots.txt`, and `/feed.xml` render with the correct origin (set `SITE_URL` if not `https://mattmccarthy.dev`)
 - [ ] Test on mobile devices

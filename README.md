@@ -85,9 +85,14 @@ pushes to `main`.
 ├── requirements-dev.txt   # Test dependencies (pytest, Playwright)
 ├── pytest.ini             # Pytest configuration (e2e marker)
 ├── README.md             # This file
+├── package.json          # Dev-only Tailwind CLI toolchain (not used in deploys)
+├── tailwind.config.js    # Tailwind content globs (purge config)
 ├── .github/
 │   └── workflows/
 │       └── ci.yml       # CI: unit + Playwright smoke tests
+├── assets/
+│   └── css/
+│       └── tailwind.css # Tailwind source + site-wide custom CSS
 ├── content/
 │   ├── blog/            # Blog post markdown files
 │   └── projects.json    # Projects data
@@ -105,7 +110,7 @@ pushes to `main`.
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
 ├── static/              # Static files (CSS, JS, images)
-│   ├── css/
+│   ├── css/             # main.css — built Tailwind stylesheet (committed)
 │   ├── images/          # Blog hero images and other assets
 │   └── js/
 └── tests/               # Pytest suite (tests/e2e/ = browser smoke tests)
@@ -162,11 +167,18 @@ Edit `content/projects.json` to add or modify projects:
 
 ### Styling
 
-The website uses Tailwind CSS via CDN. To customize colors, gradients, or styles:
+The website uses Tailwind CSS compiled ahead of time with the Tailwind CLI into `static/css/main.css` (committed — the server never runs Node). To customize colors, gradients, or styles:
 
-- Modify the `gradient-text` and other CSS classes in `templates/base.html`
+- Modify `gradient-text` and the other custom CSS in `assets/css/tailwind.css`
 - Update Tailwind utility classes in templates
-- Or include your own custom CSS in the `static/css/` directory
+- Then rebuild the stylesheet and commit the result:
+
+```bash
+npm install        # once
+npm run build:css  # or: npm run watch:css while developing
+```
+
+New Tailwind classes must appear in the content globs in `tailwind.config.js` (templates, `static/js/`, blog markdown, `content/projects.json`) or they will be purged from the build.
 
 ## Deployment
 
