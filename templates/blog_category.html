@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Blog - Matt McCarthy{% endblock %}
+
+{% block meta_description %}Articles by Matt McCarthy in the {{ category.name }} category: {{ category.posts|length }} post{{ 's' if category.posts|length != 1 }} on software engineering and related topics.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="mb-4">
+            <a href="/blog" class="text-purple-200 hover:text-white transition-colors">
+                ← Back to Blog
+            </a>
+        </div>
+        <h1 class="text-5xl font-bold mb-6">{{ category.name }}</h1>
+        <p class="text-xl text-gray-100">{{ posts|length }} post{{ 's' if posts|length != 1 }} in this category</p>
+    </div>
+</section>
+
+<!-- Blog Posts -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-12">
+            {% with active_slug = category.slug %}
+            {% include '_blog_category_nav.html' %}
+            {% endwith %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for post in posts %}
+            {% include '_blog_post_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
