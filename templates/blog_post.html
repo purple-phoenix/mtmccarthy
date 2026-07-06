@@ -119,6 +119,15 @@
         </div>
         <script src="{{ url_for('static', filename='js/bloom-filter-viz.js') }}"></script>
         {% endif %}
+
+        {% if post.slug == 'v-star-perfect-astar-heuristic' %}
+        <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive: Climb the Heuristic Ladder</h3>
+            <p class="text-gray-600 mb-6">Run A* on the same maze with three heuristics. h = 0 floods like Dijkstra, Manhattan distance dives into the pocket before backtracking, and h = V* walks the optimal path expanding nothing else. Cell numbers show h(n) for the selected heuristic.</p>
+            <div id="astar-heuristic-viz"></div>
+        </div>
+        <script src="{{ url_for('static', filename='js/astar-heuristic-viz.js') }}"></script>
+        {% endif %}
     </div>
 </article>
 
