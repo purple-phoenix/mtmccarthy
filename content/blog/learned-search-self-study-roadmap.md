@@ -63,6 +63,6 @@ Part of keeping a roadmap honest is writing down what you don't understand yet. 
 
 ## What I'll write along the way
 
-Like the [math roadmap](/blog/math-self-study-roadmap), this plan is biased toward topics where the writeup is half-done when the project is: why RL and A\* are the same algorithm (the `V* = h*` post — arguably this one's real sequel), building a learned heuristic on the 15-puzzle in a couple hundred lines of Python, from Q-learning to AlphaZero in five algorithms, whether GNN heuristics generalize across graph size and distribution shift, and reproducing Neural A\* from scratch.
+Like the [math roadmap](/blog/math-self-study-roadmap), this plan is biased toward topics where the writeup is half-done when the project is: why RL and A\* are the same algorithm ([the `V* = h*` post](/blog/v-star-perfect-astar-heuristic) — arguably this one's real sequel, now written), building a learned heuristic on the 15-puzzle in a couple hundred lines of Python, from Q-learning to AlphaZero in five algorithms, whether GNN heuristics generalize across graph size and distribution shift, and reproducing Neural A\* from scratch.
 
 This is a living roadmap. Plans like this always change on contact with the material — anchors get swapped, phases stretch, projects mutate. I'll keep this post updated as that happens and link the follow-up posts here as they land.
