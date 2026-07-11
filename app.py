@@ -112,6 +112,35 @@ PAGE_META_DESCRIPTIONS = {
                  'teaches about learning hard things.',
     'strength_training': 'Matt McCarthy on strength training: programming, consistency, and '
                          'long-term physical development.',
+    'study': 'Interactive, browser-based study tools for constraint satisfaction, Bayesian '
+             'networks, game theory, and first-order logic.',
+}
+
+STUDY_TOOLS = {
+    'constraint-satisfaction': {
+        'title': 'Constraint Satisfaction',
+        'short_title': 'CSPs',
+        'description': 'Practice arc consistency, search heuristics, and cycle-cutset reasoning.',
+        'accent': '#7c3aed',
+    },
+    'bayesian-networks': {
+        'title': 'Bayesian Networks',
+        'short_title': 'Bayes nets',
+        'description': 'Count parameters, test d-separation, and factor a conditional query.',
+        'accent': '#2563eb',
+    },
+    'bayes-nash-equilibrium': {
+        'title': 'Bayes–Nash Equilibrium',
+        'short_title': 'Bayes–Nash',
+        'description': 'Build the normal form of an incomplete-information game and find its equilibria.',
+        'accent': '#0f766e',
+    },
+    'first-order-logic': {
+        'title': 'First-Order Logic',
+        'short_title': 'FOL',
+        'description': 'Translate statements to FOL and CNF, then follow a resolution proof.',
+        'accent': '#be123c',
+    },
 }
 
 @app.context_processor
@@ -405,6 +434,17 @@ def project_detail(slug):
         abort(404)
     return render_template('project_detail.html', project=project)
 
+@app.route('/study')
+def study():
+    return render_template('study.html', tools=STUDY_TOOLS)
+
+@app.route('/study/<slug>')
+def study_tool(slug):
+    tool = STUDY_TOOLS.get(slug)
+    if not tool:
+        abort(404)
+    return render_template('study_tool.html', slug=slug, tool=tool, tools=STUDY_TOOLS)
+
 @app.route('/resume')
 def resume():
     return render_template('resume.html')
@@ -486,6 +526,9 @@ def sitemap_xml():
         if project.get('slug'):
             pages.append({'loc': f"{SITE_URL}/projects/{project['slug']}", 'lastmod': None})
 
+    for slug in STUDY_TOOLS:
+        pages.append({'loc': f'{SITE_URL}/study/{slug}', 'lastmod': None})
+
     for post in posts:
         pages.append({'loc': f"{SITE_URL}/blog/{post['slug']}",
                       'lastmod': post['date'].strftime('%Y-%m-%d')})
@@ -524,4 +567,3 @@ if __name__ == '__main__':
     os.makedirs('static/js', exist_ok=True)
     
     app.run(debug=True, host='0.0.0.0', port=8000)
-

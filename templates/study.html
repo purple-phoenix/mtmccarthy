@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Study Tools — Matt McCarthy{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-purple-50 via-white to-blue-50 py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <p class="text-sm font-semibold tracking-widest uppercase text-purple-600 mb-3">Learn by doing</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-5">Interactive AI study tools</h1>
+            <p class="text-xl text-gray-600 leading-relaxed">Four focused practice pages for core artificial-intelligence concepts. Every answer is checked privately in your browser—no account, server submission, or internet connection required.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mt-12">
+            {% for slug, tool in tools.items() %}
+            <a href="{{ url_for('study_tool', slug=slug) }}" class="bg-white rounded-xl p-7 shadow-sm border border-gray-200 hover-lift">
+                <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg mb-5">{{ loop.index }}</div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">{{ tool.title }}</h2>
+                <p class="text-gray-600 leading-relaxed mb-5">{{ tool.description }}</p>
+                <span class="font-semibold text-purple-600">Open study tool <span aria-hidden="true">→</span></span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -46,3 +46,10 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - `base.html` builds OG/Twitter tags by reusing the `title`, `meta_description`, `canonical_url`, and `og_image` Jinja blocks via `self.blockname()` — child templates only override the blocks, never the meta tags directly. `blog_post.html` overrides them per post and emits BlogPosting JSON-LD.
 - `/sitemap.xml`, `/robots.txt`, and `/feed.xml` (RSS 2.0) are generated dynamically: sitemap page list comes from `app.url_map` (zero-argument GET rules, minus `SITEMAP_EXCLUDED_ENDPOINTS`) plus project, post, and blog-category slugs, so new fixed routes appear automatically. XML is rendered from `templates/sitemap.xml` / `templates/feed.xml` (Flask autoescapes `.xml` templates).
 - Blog category pages live at `/blog/category/<slug>`; categories are derived from post front-matter (`get_blog_categories` in `app.py`, slugs via the `category_slug` template filter) — there is no hand-maintained category list, and unknown slugs 404. Their meta description is built in `templates/blog_category.html`, and they appear in the sitemap with `lastmod` = newest post in the category. The post card and category pill bar are shared partials (`templates/_blog_post_card.html`, `templates/_blog_category_nav.html`) used by both `blog.html` and `blog_category.html` — edit the partials, not per-page copies.
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.

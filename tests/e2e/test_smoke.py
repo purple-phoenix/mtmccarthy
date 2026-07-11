@@ -67,3 +67,40 @@ def test_page_renders_without_console_errors(offline_page, app_server, path):
     # The footer year is set by inline JS, so this proves scripts executed.
     assert page.locator('#footer-year').inner_text().isdigit()
     assert errors == [], f'console errors on {path}: {errors}'
+
+
+@pytest.mark.parametrize(
+    ('path', 'prepare'),
+    [
+        ('/study/constraint-satisfaction',
+         "document.querySelector('input[name=csp-domains][value=c]').click()"),
+        ('/study/bayesian-networks',
+         "document.querySelector('input[type=number]').value='24'"),
+        ('/study/bayes-nash-equilibrium',
+         "document.querySelectorAll('.matrix-input').forEach((el, i) => "
+         "el.value=['3,(2,0)','2,(2,3)','2,(1,0)','1,(1,3)',"
+         "'0,(0,2)','1,(0,1)','1,(3,2)','2,(3,1)'][i])"),
+        ('/study/first-order-logic',
+         "document.querySelectorAll('.exercise select')[0].value='a-fol'; "
+         "document.querySelectorAll('.exercise select')[1].value='a-cnf'"),
+    ],
+)
+def test_study_tool_checks_answers_without_external_requests(
+        page, app_server, path, prepare):
+    errors = []
+    external_requests = []
+    page.on('console',
+            lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
+    page.on('pageerror', lambda exc: errors.append(str(exc)))
+    page.on('request', lambda request: external_requests.append(request.url)
+            if not request.url.startswith(app_server) else None)
+
+    response = page.goto(app_server + path, wait_until='load')
+    assert response.status == 200
+    page.evaluate(prepare)
+    page.locator('.exercise button[type=submit]').first.click()
+
+    assert page.locator('.exercise .feedback.correct').first.is_visible()
+    assert 'Correct.' in page.locator('.exercise .feedback.correct').first.inner_text()
+    assert external_requests == []
+    assert errors == []
