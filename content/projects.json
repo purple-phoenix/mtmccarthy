@@ -1,5 +1,24 @@
 [
   {
+    "slug": "log-anomaly-detection",
+    "title": "Embedded Log Anomaly Detection",
+    "description": "A machine learning pipeline for prioritizing anomalous embedded-system test logs using Sentence Transformer embeddings and cosine similarity. Built for a CS 589 project, it compares several BERT-based encoders, normalizes timestamp-heavy data, and fine-tunes all-MiniLM-L6-v2 to separate abnormal and normal test runs without exposing proprietary log content.",
+    "tags": ["Python", "Sentence Transformers", "BERT", "Machine Learning", "Anomaly Detection", "NLP"],
+    "status": "Complete",
+    "featured": true,
+    "blog_url": "/blog/embedded-system-log-anomaly-detection",
+    "image_url": "/static/images/log-anomaly-custom-model-training.png",
+    "highlights": [
+      "Preprocessed months of embedded-system test logs for semantic comparison",
+      "Compared all-MiniLM-L6-v2, LaBSE, and msmarco Sentence Transformer models",
+      "Built pairwise cosine-similarity matrices to rank the most and least similar runs",
+      "Fine-tuned all-MiniLM-L6-v2 with labeled log pairs and CosineSimilarityLoss",
+      "Experimented with warmup, weight decay, and longer training schedules",
+      "Evaluated anomaly ranking through normal/abnormal tail composition and TP/FN framing",
+      "Kept the workflow local to protect sensitive source logs"
+    ]
+  },
+  {
     "slug": "lstm-stock-prediction",
     "title": "LSTM Stock Price Prediction",
     "description": "A neural network-based stock price prediction system using Long Short-Term Memory (LSTM) networks. Built as a final project for CS 682 Neural Networks course at UMass Amherst. Implements a multi-layer LSTM architecture with dropout regularization, layer normalization, and early stopping for predicting daily stock closing prices.",

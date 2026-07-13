@@ -144,6 +144,7 @@ Edit `content/projects.json` to add or modify projects:
 
 ```json
 {
+  "slug": "project-name",
   "title": "Project Name",
   "description": "Project description",
   "tags": ["Tag1", "Tag2"],
@@ -151,12 +152,17 @@ Edit `content/projects.json` to add or modify projects:
   "featured": true,
   "github_url": "https://github.com/username/repo",
   "demo_url": "https://demo-url.com",
+  "paper_url": "https://example.com/paper.pdf",
+  "blog_url": "/blog/related-post",
+  "image_url": "/static/images/project-feature.png",
   "highlights": [
     "Feature 1",
     "Feature 2"
   ]
 }
 ```
+
+The `slug` creates the detail page at `/projects/<slug>`. Link fields are optional, including `github_url`, `demo_url`, `paper_url`, and `blog_url`; omit any that are not public. If provided, `image_url` must point to a real file under `static/images/`.
 
 ### Customizing Personal Information
 
@@ -224,5 +230,4 @@ Feel free to reach out if you have questions or suggestions!
 ---
 
 Built with ❤️ using Flask and Tailwind CSS
-
 
