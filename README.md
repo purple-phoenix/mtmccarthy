@@ -1,11 +1,12 @@
 # Personal Website
 
-A modern, professional personal website built with Flask featuring a blog, projects showcase, and interactive resume.
+A modern, professional personal website built with Flask featuring a blog, projects showcase, interactive study tools, and resume.
 
 ## Features
 
 - 🏠 **Homepage**: Beautiful landing page with hero section and featured content
 - 📝 **Blog**: Markdown-based blog system with syntax highlighting and category filter pages
+- 🧠 **Study Tools**: Self-contained browser exercises with private, instant answer checking
 - 🚀 **Projects**: Showcase your work with detailed project cards
 - 📄 **Resume**: Professional resume with timeline view
 - 📱 **Responsive Design**: Mobile-first design using Tailwind CSS
@@ -105,6 +106,8 @@ pushes to `main`.
 │   ├── _blog_post_card.html    # Shared post card partial
 │   ├── _blog_category_nav.html # Shared category pill bar partial
 │   ├── blog_post.html   # Individual blog post
+│   ├── study.html       # Interactive study tools index (/study)
+│   ├── study_tool.html  # Self-contained tool pages (/study/<slug>)
 │   ├── projects.html    # Projects showcase
 │   ├── resume.html      # Interactive resume
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)

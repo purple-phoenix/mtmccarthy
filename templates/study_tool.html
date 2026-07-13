@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ tool.description }} Answers are checked locally in your browser.">
+    <meta name="author" content="Matt McCarthy">
+    <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+    <title>{{ tool.title }} Study Tool — Matt McCarthy</title>
+    <style>
+        :root { --accent: {{ tool.accent }}; --ink: #111827; --muted: #5b6472; --line: #dfe3ea; --paper: #fff; --wash: #f7f7fb; --ok: #166534; --ok-bg: #f0fdf4; --bad: #991b1b; --bad-bg: #fef2f2; }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--wash); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+        a { color: inherit; }
+        .nav { background: rgba(255,255,255,.96); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+        .nav-inner { max-width: 1120px; margin: auto; min-height: 64px; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { color: var(--accent); font-size: 1.25rem; font-weight: 800; text-decoration: none; }
+        .nav-links { display: flex; flex-wrap: wrap; gap: 16px; font-size: .9rem; font-weight: 650; }
+        .nav-links a { color: #4b5563; text-decoration: none; }
+        .nav-links a:hover, .nav-links a:focus { color: var(--accent); }
+        .hero { color: white; background: linear-gradient(135deg, var(--accent), #111827); }
+        .hero-inner, .layout { max-width: 980px; margin: auto; padding-left: 20px; padding-right: 20px; }
+        .hero-inner { padding-top: 54px; padding-bottom: 58px; }
+        .eyebrow { margin: 0 0 8px; font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; opacity: .82; }
+        h1 { margin: 0; font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1.05; letter-spacing: -.04em; }
+        .lede { max-width: 730px; margin: 18px 0 0; font-size: 1.1rem; opacity: .9; }
+        .privacy { display: inline-flex; margin-top: 22px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; font-size: .85rem; background: rgba(255,255,255,.1); }
+        .layout { padding-top: 34px; padding-bottom: 64px; }
+        .topic-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 24px; }
+        .topic-nav a { white-space: nowrap; text-decoration: none; padding: 8px 12px; background: white; border: 1px solid var(--line); border-radius: 999px; font-size: .82rem; font-weight: 700; color: #4b5563; }
+        .topic-nav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: white; }
+        .reference, .exercise { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 25px rgba(17,24,39,.05); padding: clamp(20px, 5vw, 32px); margin: 20px 0; overflow-wrap: anywhere; }
+        .reference { border-top: 4px solid var(--accent); }
+        h2 { margin: 0 0 14px; font-size: 1.55rem; line-height: 1.25; }
+        h3 { margin: 22px 0 8px; font-size: 1.05rem; }
+        p { margin: 10px 0; }
+        ul, ol { padding-left: 22px; }
+        code, .math { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        code { padding: 2px 5px; border-radius: 5px; background: #f1f3f7; }
+        .diagram { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 22px 12px; margin: 16px 0; background: #fafafe; border: 1px solid var(--line); border-radius: 14px; }
+        .node { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 2px solid var(--accent); border-radius: 50%; background: white; font-weight: 800; }
+        .arrow { color: var(--accent); font-size: 1.4rem; font-weight: 800; }
+        .network { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 12px; max-width: 470px; margin: 18px auto; text-align: center; }
+        .network .edge { grid-column: 1 / -1; color: var(--muted); font-size: .85rem; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .9rem; }
+        th, td { border: 1px solid var(--line); padding: 9px; text-align: left; vertical-align: top; }
+        th { background: #f4f5f8; }
+        .scroll { overflow-x: auto; }
+        .prompt { background: #f5f3ff; border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 0 10px 10px 0; }
+        fieldset { min-width: 0; border: 0; padding: 0; margin: 16px 0; }
+        legend, label { font-weight: 700; }
+        .choices { display: grid; gap: 8px; margin-top: 8px; }
+        .choice { display: flex; gap: 9px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-weight: 500; background: #fff; }
+        input[type="radio"] { margin-top: 5px; accent-color: var(--accent); }
+        input[type="text"], input[type="number"], select { width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid #abb2bf; border-radius: 9px; background: white; color: var(--ink); font: inherit; }
+        .matrix-input { min-width: 110px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .82rem; }
+        button { border: 0; border-radius: 9px; padding: 11px 16px; background: var(--accent); color: white; font: inherit; font-weight: 750; cursor: pointer; }
+        button:hover { filter: brightness(.92); }
+        button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, white); outline-offset: 2px; }
+        .feedback { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 10px; }
+        .feedback.correct { display: block; color: var(--ok); background: var(--ok-bg); border: 1px solid #86efac; }
+        .feedback.incorrect { display: block; color: var(--bad); background: var(--bad-bg); border: 1px solid #fca5a5; }
+        details { margin-top: 14px; }
+        summary { color: var(--accent); font-weight: 750; cursor: pointer; }
+        .footer { border-top: 1px solid var(--line); color: var(--muted); text-align: center; padding: 30px 20px; background: white; }
+        @media (max-width: 600px) { .nav-inner { align-items: flex-start; flex-direction: column; } .nav-links { gap: 11px; } th, td { padding: 7px; } }
+    </style>
+</head>
+<body>
+    <nav class="nav" aria-label="Primary navigation">
+        <div class="nav-inner">
+            <a class="brand" href="/">Matt McCarthy</a>
+            <div class="nav-links"><a href="/">Home</a><a href="/blog">Blog</a><a href="/projects">Projects</a><a href="/study">Study tools</a></div>
+        </div>
+    </nav>
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="eyebrow">Interactive study tool</p>
+            <h1>{{ tool.title }}</h1>
+            <p class="lede">{{ tool.description }} Work through each exercise, check it instantly, and use the explanation to close any gaps.</p>
+            <span class="privacy">✓ Answers stay in this browser · no network calls</span>
+        </div>
+    </header>
+    <main class="layout">
+        <nav class="topic-nav" aria-label="Study topics">
+            {% for nav_slug, nav_tool in tools.items() %}<a href="{{ url_for('study_tool', slug=nav_slug) }}" {% if nav_slug == slug %}aria-current="page"{% endif %}>{{ nav_tool.short_title }}</a>{% endfor %}
+        </nav>
+
+        {% if slug == 'constraint-satisfaction' %}
+        <section class="reference">
+            <h2>The problem</h2>
+            <div class="diagram" aria-label="Constraint graph A less than B less than C"><span class="node">A</span><span class="arrow">&lt;</span><span class="node">B</span><span class="arrow">&lt;</span><span class="node">C</span></div>
+            <p>Each variable starts with domain <code>{1, 2, 3}</code>. An arc <code>X → Y</code> is consistent when every value in <code>D(X)</code> has at least one supporting value in <code>D(Y)</code>.</p>
+        </section>
+        <form class="exercise" data-explanation="AC-3 removes 3 from A and 1 from B for A&lt;B; it removes 3 from B and 1 from C for B&lt;C. Rechecking affected arcs then leaves A={1}, B={2}, C={3}. Every domain is a singleton, so no search remains.">
+            <h2>1. Enforce arc consistency</h2>
+            <p class="prompt">After AC-3 reaches a fixed point, what are the reduced domains?</p>
+            <fieldset><legend>Final domains</legend><div class="choices">
+                <label class="choice"><input type="radio" name="csp-domains" value="a" data-answer="c"> A={1,2}, B={2}, C={2,3}</label>
+                <label class="choice"><input type="radio" name="csp-domains" value="b"> A={1}, B={2,3}, C={3}</label>
+                <label class="choice"><input type="radio" name="csp-domains" value="c"> A={1}, B={2}, C={3}</label>
+                <label class="choice"><input type="radio" name="csp-domains" value="d"> A={1,2,3}, B={1,2,3}, C={1,2,3}</label>
+            </div></fieldset><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        <form class="exercise" data-explanation="MRV chooses the unassigned variable with the fewest legal values. LCV orders that variable's values by how few options they remove from neighboring variables. In this tiny CSP, AC-3 already found the sole assignment.">
+            <h2>2. Search heuristics</h2>
+            <label>MRV chooses…<select data-answer="variable-fewest"><option value="">Choose one</option><option value="value-most">the value satisfying the most constraints</option><option value="variable-fewest">the variable with the fewest legal values</option><option value="variable-most">the variable with the most neighbors</option></select></label>
+            <label>LCV chooses…<select data-answer="value-least"><option value="">Choose one</option><option value="variable-fewest">the variable with the fewest values</option><option value="value-least">the value that rules out the fewest neighbor values</option><option value="value-most">the value that rules out the most neighbor values</option></select></label>
+            <button type="submit">Check answers</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        <form class="exercise" data-explanation="True. With a constant number ℓ of cycles, a cycle cutset can be bounded by a constant c. Trying d^c cutset assignments and solving each remaining tree in O(n·d²) is polynomial in n (for fixed ℓ and ordinary explicit domains).">
+            <h2>3. Cycle-cutset reasoning</h2><p class="prompt">True or false: a CSP whose constraint graph has a constant number of cycles can be solved in polynomial time by conditioning on a cycle cutset.</p>
+            <fieldset><legend>Your verdict</legend><div class="choices"><label class="choice"><input type="radio" name="cutset" value="true" data-answer="true"> True</label><label class="choice"><input type="radio" name="cutset" value="false"> False</label></div></fieldset>
+            <button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+
+        {% elif slug == 'bayesian-networks' %}
+        <section class="reference"><h2>The network</h2>
+            <div class="network" aria-label="A points to B and C; B and C point to D and E; D and E point to F"><span></span><span class="node">A</span><span></span><span></span><div class="edge">A → B, C</div><span class="node">B</span><span class="node">C</span><span></span><span></span><div class="edge">B, C → D, E</div><span class="node">D</span><span class="node">E</span><span></span><span></span><div class="edge">D, E → F</div><span></span><span class="node">F</span></div>
+            <p>A and F have 3 values; B, C, D, and E have 2. Parameters per node: <code>(values − 1) × ∏ parent values</code>.</p>
+        </section>
+        <form class="exercise" data-explanation="A:2, B:3, C:3, D:4, E:4, F:8. The total is 2+3+3+4+4+8 = 24 independent parameters."><h2>1. Count parameters</h2><label>Minimum number of parameters<input type="number" inputmode="numeric" data-answer="24" min="0"></label><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div></form>
+        <form class="exercise" data-explanation="(i) True: conditioning on B and C blocks every route from A toward D/E/F. (ii) False: B→D→F is active (and similarly through E/C). (iii) False: observing F, a descendant of colliders D and E, activates paths B→D←C and B→E←C even though the fork through A is blocked.">
+            <h2>2. Test d-separation</h2>
+            <label>(i) A ⟂ F | {B,C}<select data-answer="true"><option value="">Choose</option><option value="true">True</option><option value="false">False</option></select></label>
+            <label>(ii) F ⟂ {B,C} | A<select data-answer="false"><option value="">Choose</option><option value="true">True</option><option value="false">False</option></select></label>
+            <label>(iii) B ⟂ C | {A,F}<select data-answer="false"><option value="">Choose</option><option value="true">True</option><option value="false">False</option></select></label>
+            <button type="submit">Check answers</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        <form class="exercise" data-explanation="Start with the BN factorization, sum out unobserved B and C, and normalize over A. F disappears because ΣF P(F|D,E)=1. The denominator is the same numerator summed over A.">
+            <h2>3. Factor a conditional query</h2><p class="prompt">Which expression correctly gives P(A | D,E)?</p>
+            <fieldset><legend>Choose one</legend><div class="choices">
+                <label class="choice"><input type="radio" name="query" value="one" data-answer="two"> P(A)P(D|A)P(E|A)</label>
+                <label class="choice"><input type="radio" name="query" value="two"> Normalize<sub>A</sub>[P(A) Σ<sub>B,C</sub> P(B|A)P(C|A)P(D|B,C)P(E|B,C)]</label>
+                <label class="choice"><input type="radio" name="query" value="three"> Σ<sub>F</sub> P(F|D,E)P(A|F)</label>
+            </div></fieldset><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+
+        {% elif slug == 'bayes-nash-equilibrium' %}
+        <section class="reference"><h2>An incomplete-information game</h2><p>The informed player chooses Red or Blue after learning whether their type is social or solitary. The uninformed player chooses without seeing the type. Each type initially has probability ½. Payoffs are <strong>(informed, uninformed)</strong>.</p>
+            <div class="scroll"><table><thead><tr><th>Type</th><th>I=Red, U=Red</th><th>I=Red, U=Blue</th><th>I=Blue, U=Red</th><th>I=Blue, U=Blue</th></tr></thead><tbody><tr><td>social</td><td>2, 3</td><td>0, 0</td><td>1, 1</td><td>3, 2</td></tr><tr><td>solitary</td><td>0, 3</td><td>2, 0</td><td>3, 1</td><td>1, 2</td></tr></tbody></table></div>
+            <p>A strategy for the informed player is a pair <code>(social action, solitary action)</code>. Each normal-form cell is <code>uninformed expected payoff, (social payoff, solitary payoff)</code>.</p>
+        </section>
+        <form class="exercise" data-explanation="Average only the uninformed player's payoff across types. Keep the informed player's payoff split by type. For example, row Red and column (Red,Blue) is 2,(2,3).">
+            <h2>1. Build the normal form</h2><div class="scroll"><table><thead><tr><th>Uninformed \ informed</th><th>(R,R)</th><th>(R,B)</th><th>(B,R)</th><th>(B,B)</th></tr></thead><tbody>
+                <tr><th>Red</th><td><input class="matrix-input" aria-label="Red row Red Red column" data-answer="3,(2,0)"></td><td><input class="matrix-input" aria-label="Red row Red Blue column" data-answer="2,(2,3)"></td><td><input class="matrix-input" aria-label="Red row Blue Red column" data-answer="2,(1,0)"></td><td><input class="matrix-input" aria-label="Red row Blue Blue column" data-answer="1,(1,3)"></td></tr>
+                <tr><th>Blue</th><td><input class="matrix-input" aria-label="Blue row Red Red column" data-answer="0,(0,2)"></td><td><input class="matrix-input" aria-label="Blue row Red Blue column" data-answer="1,(0,1)"></td><td><input class="matrix-input" aria-label="Blue row Blue Red column" data-answer="1,(3,2)"></td><td><input class="matrix-input" aria-label="Blue row Blue Blue column" data-answer="2,(3,1)"></td></tr>
+            </tbody></table></div><button type="submit">Check matrix</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        <form class="exercise" data-explanation="Given U=Red, the social type prefers Red (2&gt;1) and the solitary type prefers Blue (3&gt;0), producing (R,B). Against that strategy, U prefers Red (2&gt;1). Thus ((R,B), Red) is the unique equilibrium at the ½–½ prior.">
+            <h2>2. Find the equilibrium</h2><label>Bayes–Nash equilibrium<select data-answer="rb-r"><option value="">Choose one</option><option value="rr-r">((R,R), Red)</option><option value="rb-r">((R,B), Red)</option><option value="br-b">((B,R), Blue)</option><option value="bb-b">((B,B), Blue)</option></select></label><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        <form class="exercise" data-explanation="The original ((R,B), Red) equilibrium remains. With social probability 5/6, U's payoff against (B,R) becomes 4/3 for Red and 5/3 for Blue, so ((B,R), Blue) becomes a second equilibrium.">
+            <h2>3. Shift the prior</h2><p class="prompt">If the social type's probability rises to 5/6, how does the equilibrium set change?</p><fieldset><legend>Choose one</legend><div class="choices"><label class="choice"><input type="radio" name="prior" value="same" data-answer="two"> It stays unique and unchanged</label><label class="choice"><input type="radio" name="prior" value="two"> The original remains and ((B,R), Blue) is added</label><label class="choice"><input type="radio" name="prior" value="replace"> ((B,R), Blue) replaces the original</label></div></fieldset><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+
+        {% elif slug == 'first-order-logic' %}
+        <section class="reference"><h2>Vocabulary and CNF recipe</h2><p><code>G(x)</code>: x has a gene; <code>C(x)</code>: x is a carrier; <code>D(x)</code>: x exhibits the condition; <code>F(x)</code>/<code>M(x)</code>: father/mother of x.</p><ol><li>Eliminate ⇒ and ⇔.</li><li>Push negation inward.</li><li>Standardize variables apart.</li><li>Skolemize existentials.</li><li>Drop universal quantifiers and distribute ∨ over ∧.</li></ol></section>
+        <form class="exercise" data-explanation="The implication G(x)⇒(D(x)∨C(x)) becomes ¬G(x)∨D(x)∨C(x), a single CNF clause."><h2>1. Translate a disjunction</h2><p class="prompt">“Anyone with the gene either exhibits the condition or is a carrier.”</p><label>FOL<select data-answer="a-fol"><option value="">Choose</option><option value="a-fol">∀x G(x) ⇒ (D(x) ∨ C(x))</option><option value="wrong1">∃x G(x) ∧ D(x) ∧ C(x)</option><option value="wrong2">∀x D(x) ⇒ G(x)</option></select></label><label>CNF<select data-answer="a-cnf"><option value="">Choose</option><option value="a-cnf">¬G(x) ∨ D(x) ∨ C(x)</option><option value="wrong1">G(x) ∨ ¬D(x) ∨ ¬C(x)</option><option value="wrong2">¬G(x) ∧ D(x) ∧ C(x)</option></select></label><button type="submit">Check answers</button><div class="feedback" role="status" aria-live="polite"></div></form>
+        <form class="exercise" data-explanation="An implication to a conjunction splits into two CNF clauses: ¬D(x)∨G(F(x)) and ¬D(x)∨G(M(x))."><h2>2. Split a conjunction</h2><p class="prompt">“If someone exhibits the condition, both parents have the gene.”</p><label>FOL<select data-answer="b-fol"><option value="">Choose</option><option value="b-fol">∀x D(x) ⇒ (G(F(x)) ∧ G(M(x)))</option><option value="wrong1">∀x D(x) ⇒ (G(F(x)) ∨ G(M(x)))</option><option value="wrong2">∃x D(x) ∧ G(F(x))</option></select></label><label>CNF<select data-answer="b-cnf"><option value="">Choose</option><option value="b-cnf">¬D(x)∨G(F(x)); ¬D(x)∨G(M(x))</option><option value="wrong1">¬D(x)∨G(F(x))∨G(M(x))</option><option value="wrong2">D(x)∧G(F(x))∧G(M(x))</option></select></label><button type="submit">Check answers</button><div class="feedback" role="status" aria-live="polite"></div></form>
+        <form class="exercise" data-explanation="“At least one” is a disjunction, so the implication produces one clause: ¬C(x)∨G(F(x))∨G(M(x))."><h2>3. Preserve “at least one”</h2><p class="prompt">“If someone is a carrier, at least one parent has the gene.”</p><label>CNF<select data-answer="c-cnf"><option value="">Choose</option><option value="c-cnf">¬C(x) ∨ G(F(x)) ∨ G(M(x))</option><option value="wrong1">¬C(x)∨G(F(x)); ¬C(x)∨G(M(x))</option><option value="wrong2">C(x) ∨ ¬G(F(x)) ∨ ¬G(M(x))</option></select></label><button type="submit">Check answer</button><div class="feedback" role="status" aria-live="polite"></div></form>
+        <form class="exercise" data-explanation="Resolve the disease fact with the father clause to get G(F(a)). Clause 1 then yields C(F(a))∨D(F(a)). The mother clause converts the D branch, and the negated goal removes G(M(F(a))), leaving C(F(a)). The carrier clause produces the two grandparent literals; the two remaining negated-goal clauses reduce them to ⊥.">
+            <h2>4. Complete a resolution proof</h2><p class="prompt">To prove D(v)⇒(G(M(F(v)))∨G(F(F(v)))), negate the goal using a fresh constant a: D(a), ¬G(M(F(a))), ¬G(F(F(a))). Choose the key resolvent at each stage.</p>
+            <label>Resolve D(a) with ¬D(x)∨G(F(x))<select data-answer="gfa"><option value="">Choose</option><option value="gfa">G(F(a))</option><option value="dfa">D(F(a))</option><option value="notg">¬G(F(a))</option></select></label>
+            <label>Resolve that with ¬G(x)∨C(x)∨D(x)<select data-answer="c-or-d"><option value="">Choose</option><option value="c-or-d">C(F(a)) ∨ D(F(a))</option><option value="parents">G(F(F(a))) ∨ G(M(F(a)))</option><option value="bottom">⊥</option></select></label>
+            <label>After using the parent clauses and ¬G(M(F(a))), what remains?<select data-answer="cfa"><option value="">Choose</option><option value="cfa">C(F(a))</option><option value="dfa">D(F(a))</option><option value="gfa">G(F(a))</option></select></label>
+            <label>The carrier clause then derives…<select data-answer="grandparents"><option value="">Choose</option><option value="grandparents">G(F(F(a))) ∨ G(M(F(a)))</option><option value="parents">G(F(a)) ∨ G(M(a))</option><option value="bottom">⊥ immediately</option></select></label>
+            <button type="submit">Check proof</button><div class="feedback" role="status" aria-live="polite"></div>
+        </form>
+        {% endif %}
+    </main>
+    <footer class="footer">Built by Matt McCarthy · <a href="/study">All study tools</a></footer>
+    <script>
+        (() => {
+            const normalize = value => String(value || '').toLowerCase().replace(/[\s·]/g, '').replace(/[\[\]]/g, '');
+            document.querySelectorAll('.exercise').forEach(form => {
+                form.addEventListener('submit', event => {
+                    event.preventDefault();
+                    const fields = [...form.querySelectorAll('[data-answer]')];
+                    const radioNames = new Set(fields.filter(field => field.type === 'radio').map(field => field.name));
+                    let complete = true;
+                    let correct = true;
+                    fields.filter(field => field.type !== 'radio').forEach(field => {
+                        if (!field.value) complete = false;
+                        if (normalize(field.value) !== normalize(field.dataset.answer)) correct = false;
+                    });
+                    radioNames.forEach(name => {
+                        const expectedField = form.querySelector(`input[name="${name}"][data-answer]`);
+                        const chosen = form.querySelector(`input[name="${name}"]:checked`);
+                        if (!chosen) complete = false;
+                        if (!chosen || normalize(chosen.value) !== normalize(expectedField.dataset.answer)) correct = false;
+                    });
+                    const feedback = form.querySelector('.feedback');
+                    if (!complete) {
+                        feedback.className = 'feedback incorrect';
+                        feedback.innerHTML = '<strong>Finish every field first.</strong> Your work has not been graded yet.';
+                    } else if (correct) {
+                        feedback.className = 'feedback correct';
+                        feedback.innerHTML = '<strong>Correct.</strong> ' + form.dataset.explanation;
+                    } else {
+                        feedback.className = 'feedback incorrect';
+                        feedback.innerHTML = '<strong>Not quite.</strong> ' + form.dataset.explanation;
+                    }
+                    feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -57,3 +57,32 @@ def test_chess_page_renders_even_with_no_network(client):
     """With outbound HTTP blocked (conftest), /chess must still render."""
     response = client.get('/chess')
     assert response.status_code == 200
+
+
+def test_study_pages_render_and_unknown_tool_404(client):
+    pages = [
+        '/study',
+        '/study/constraint-satisfaction',
+        '/study/bayesian-networks',
+        '/study/bayes-nash-equilibrium',
+        '/study/first-order-logic',
+    ]
+    for path in pages:
+        response = client.get(path)
+        assert response.status_code == 200
+        assert b'Study' in response.data or b'study' in response.data
+
+    assert client.get('/study/not-a-tool').status_code == 404
+
+
+def test_study_tools_are_self_contained_and_privacy_scrubbed(client):
+    forbidden = (
+        b'cdn.', b'fonts.googleapis.com', b'fetch(', b'XMLHttpRequest',
+        b'localhost', b'127.0.0.1', b'lavish', b'queuePrompt', b'COMPSCI',
+        b'final20', b'/Users/', b'Paula', b'Vignesh',
+    )
+    for slug in ('constraint-satisfaction', 'bayesian-networks',
+                 'bayes-nash-equilibrium', 'first-order-logic'):
+        body = client.get(f'/study/{slug}').data
+        for token in forbidden:
+            assert token not in body
