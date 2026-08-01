@@ -153,6 +153,7 @@
             <h2 class="text-4xl font-bold mb-4 gradient-text">Latest from the Blog</h2>
             <p class="text-gray-600">Thoughts, tutorials, and insights</p>
         </div>
+        {% include '_astroai_series_banner.html' %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for post in posts %}
             <article class="bg-white rounded-xl shadow-lg overflow-hidden hover-lift border border-gray-100">
@@ -201,4 +202,3 @@
     </div>
 </section>
 {% endblock %}
-

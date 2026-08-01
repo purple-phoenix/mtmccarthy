@@ -42,6 +42,22 @@ def inject_ga_measurement_id():
 BLOG_DIR = 'content/blog'
 PROJECTS_FILE = 'content/projects.json'
 
+BLOG_SERIES = {
+    'astroai-building-for-trust': {
+        'title': 'Building AstroAI for Trust and User Value',
+        'eyebrow': 'A five-part product-building series',
+        'description': ('How I approached trust, delivery evidence, human-reviewed content, '
+                        'product valuation, and beta-first growth while building AstroAI.'),
+        'post_slugs': [
+            'building-astroai-for-trust-not-ai-slop',
+            'review-system-that-proves-what-shipped',
+            'building-a-private-social-content-studio',
+            'valuing-software-before-traction-is-proven',
+            'from-feature-output-to-user-value',
+        ],
+    },
+}
+
 # Parsed blog posts keyed by file path, invalidated per-file by mtime so
 # edits show up without a restart. Values are (mtime, post_dict_or_None).
 _post_cache = {}
@@ -196,6 +212,20 @@ def get_blog_categories(posts=None):
         entry = categories.setdefault(slug, {'name': name, 'slug': slug, 'posts': []})
         entry['posts'].append(post)
     return dict(sorted(categories.items(), key=lambda item: item[1]['name'].lower()))
+
+def get_blog_series(slug, posts=None):
+    """Return series metadata with its available posts in editorial order."""
+    config = BLOG_SERIES.get(slug)
+    if not config:
+        return None
+    if posts is None:
+        posts = load_blog_posts()
+    posts_by_slug = {post['slug']: post for post in posts}
+    series = dict(config)
+    series['slug'] = slug
+    series['posts'] = [posts_by_slug[post_slug] for post_slug in config['post_slugs']
+                       if post_slug in posts_by_slug]
+    return series
 
 def load_projects():
     """Load projects from JSON file"""
@@ -385,7 +415,9 @@ def index():
     posts = load_blog_posts()[:3]  # Latest 3 posts
     all_projects = load_projects()
     projects = [p for p in all_projects if p.get('featured', False)]  # All featured projects
-    return render_template('index.html', posts=posts, projects=projects)
+    astroai_series = get_blog_series('astroai-building-for-trust')
+    return render_template('index.html', posts=posts, projects=projects,
+                           astroai_series=astroai_series)
 
 @app.route('/about')
 def about():
@@ -395,7 +427,9 @@ def about():
 def blog():
     posts = load_blog_posts()
     categories = get_blog_categories(posts)
-    return render_template('blog.html', posts=posts, categories=categories)
+    astroai_series = get_blog_series('astroai-building-for-trust', posts)
+    return render_template('blog.html', posts=posts, categories=categories,
+                           astroai_series=astroai_series)
 
 @app.route('/blog/category/<slug>')
 def blog_category(slug):
@@ -405,6 +439,13 @@ def blog_category(slug):
         abort(404)
     return render_template('blog_category.html', category=category,
                            posts=category['posts'], categories=categories)
+
+@app.route('/blog/series/<slug>')
+def blog_series(slug):
+    series = get_blog_series(slug)
+    if not series:
+        abort(404)
+    return render_template('blog_series.html', series=series)
 
 @app.route('/blog/<slug>')
 def blog_post(slug):
@@ -418,8 +459,25 @@ def blog_post(slug):
     current_index = next((i for i, p in enumerate(posts) if p['slug'] == slug), -1)
     prev_post = posts[current_index + 1] if current_index < len(posts) - 1 else None
     next_post = posts[current_index - 1] if current_index > 0 else None
-    
-    return render_template('blog_post.html', post=post, prev_post=prev_post, next_post=next_post)
+
+    series = None
+    series_prev = None
+    series_next = None
+    for series_slug, config in BLOG_SERIES.items():
+        if slug not in config['post_slugs']:
+            continue
+        series = get_blog_series(series_slug, posts)
+        series_index = next(i for i, item in enumerate(series['posts'])
+                            if item['slug'] == slug)
+        if series_index > 0:
+            series_prev = series['posts'][series_index - 1]
+        if series_index < len(series['posts']) - 1:
+            series_next = series['posts'][series_index + 1]
+        break
+
+    return render_template('blog_post.html', post=post, prev_post=prev_post,
+                           next_post=next_post, series=series,
+                           series_prev=series_prev, series_next=series_next)
 
 @app.route('/projects')
 def projects():
@@ -538,6 +596,12 @@ def sitemap_xml():
         newest = max(p['date'] for p in category['posts'])
         pages.append({'loc': f"{SITE_URL}/blog/category/{slug}",
                       'lastmod': newest.strftime('%Y-%m-%d')})
+
+    for slug in BLOG_SERIES:
+        series = get_blog_series(slug, posts)
+        newest = max((p['date'] for p in series['posts']), default=None)
+        pages.append({'loc': f'{SITE_URL}/blog/series/{slug}',
+                      'lastmod': newest.strftime('%Y-%m-%d') if newest else None})
 
     xml = render_template('sitemap.xml', pages=pages)
     return Response(xml, mimetype='application/xml')

@@ -26,6 +26,13 @@
 {% if post.image_url %}
 {% set _ = post_ld.update({'image': post.image_url if post.image_url.startswith('http') else site_url ~ post.image_url}) %}
 {% endif %}
+{% if series %}
+{% set _ = post_ld.update({'isPartOf': {
+    '@type': 'CollectionPage',
+    'name': series.title,
+    'url': site_url ~ '/blog/series/' ~ series.slug
+}}) %}
+{% endif %}
 <script type="application/ld+json">{{ post_ld|tojson }}</script>
 {% endblock %}
 
@@ -64,6 +71,24 @@
         <div class="mb-8 rounded-lg overflow-hidden">
             <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto" onerror="this.parentElement.style.display='none'">
         </div>
+        {% endif %}
+        {% if series %}
+        <nav class="mb-10 rounded-xl border border-purple-200 bg-purple-50 p-5" aria-label="AstroAI series navigation">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold uppercase tracking-wider text-purple-700">Part {{ series.post_slugs.index(post.slug) + 1 }} of {{ series.posts|length }}</p>
+                    <a href="/blog/series/{{ series.slug }}" class="mt-1 inline-block font-bold text-gray-900 hover:text-purple-700">{{ series.title }}</a>
+                </div>
+                <div class="flex flex-wrap gap-3 text-sm font-semibold">
+                    {% if series_prev %}
+                    <a href="/blog/{{ series_prev.slug }}" class="rounded-lg bg-white px-4 py-2 text-purple-700 ring-1 ring-purple-200 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500">← Part {{ series.post_slugs.index(series_prev.slug) + 1 }}</a>
+                    {% endif %}
+                    {% if series_next %}
+                    <a href="/blog/{{ series_next.slug }}" class="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">Part {{ series.post_slugs.index(series_next.slug) + 1 }} →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
         {% endif %}
         <div class="blog-content">
             {{ post.body|safe }}
@@ -169,5 +194,4 @@
     </div>
 </section>
 {% endblock %}
-
 
