@@ -58,3 +58,28 @@ def test_blog_index_lists_posts(client, make_post):
 
     assert 'Listed Post' in html
     assert '/blog/listed-post' in html
+
+
+def test_series_hub_and_ordered_post_navigation(client, make_post, monkeypatch):
+    first = make_post('series-first', title='Trust First', date='2026-07-30')
+    second = make_post('series-second', title='Measure Value', date='2026-07-31')
+    monkeypatch.setattr(
+        'app.BLOG_SERIES',
+        {'test-series': {
+            'title': 'Test Series',
+            'eyebrow': 'Two parts',
+            'description': 'A series description.',
+            'post_slugs': [first.stem, second.stem],
+        }},
+    )
+
+    hub = client.get('/blog/series/test-series')
+    assert hub.status_code == 200
+    html = hub.get_data(as_text=True)
+    assert html.index('Trust First') < html.index('Measure Value')
+    assert '/blog/series/test-series' in client.get('/blog/series-first').get_data(as_text=True)
+    assert '/blog/series-second' in client.get('/blog/series-first').get_data(as_text=True)
+
+
+def test_unknown_blog_series_returns_404(client):
+    assert client.get('/blog/series/not-a-series').status_code == 404
