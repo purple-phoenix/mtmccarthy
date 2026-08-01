@@ -113,7 +113,3 @@ The four-lens framework helps answer different decisions:
 Keeping the lenses separate prevents a common founder mistake: using the highest answer to every question. A product can be expensive to rebuild, strategically interesting, difficult to sell today, and still have meaningful venture upside. Those statements can all be true at once.
 
 Before traction is proven, honest ranges and explicit assumptions are more useful than a precise private figure. The next job is not defending the spreadsheet. It is creating user evidence that changes it.
-
-**Previous:** [Building a Private Social Content Studio](/blog/building-a-private-social-content-studio)
-
-**Next:** [From Feature Output to User Value](/blog/from-feature-output-to-user-value)

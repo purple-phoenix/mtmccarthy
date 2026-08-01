@@ -82,5 +82,3 @@ Some of this work is shipped today: deterministic chart computation, structured 
 The product lesson is broader than astrology. If an AI feature handles personal inputs, split the system into parts you can prove and parts you can only evaluate. Make that split legible. Give users controls that match the promises. Then test the experience as a user would encounter it.
 
 That produces something better than confident text. It produces a product people have a reason to trust.
-
-**Next:** [A Review System That Proves What Shipped](/blog/review-system-that-proves-what-shipped)

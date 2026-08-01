@@ -99,7 +99,3 @@ The answers should change the roadmap. If beta evidence does not have permission
 AstroAI has moved past the question “can I build these features?” The next operating question is whether the product repeatedly helps real users in a way they understand, trust, and choose again.
 
 That is a less dramatic story than feature velocity. It is also the only story that can support durable growth.
-
-**Previous:** [Valuing a Software Product Before Traction Is Proven](/blog/valuing-software-before-traction-is-proven)
-
-**Series hub:** [Building AstroAI for Trust and User Value](/blog/series/astroai-building-for-trust)

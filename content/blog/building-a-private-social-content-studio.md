@@ -89,7 +89,3 @@ The studio optimizes for four outcomes:
 It does not optimize for the largest number of posts. Volume is only useful after the content is accurate, recognizably ours, and connected to a real user need.
 
 That is the broader lesson: automate the handoffs and the repetitive preparation, then make the consequential decision obvious. A private content studio can make a human editor much faster without pretending the editor is unnecessary.
-
-**Previous:** [A Review System That Proves What Shipped](/blog/review-system-that-proves-what-shipped)
-
-**Next:** [Valuing a Software Product Before Traction Is Proven](/blog/valuing-software-before-traction-is-proven)

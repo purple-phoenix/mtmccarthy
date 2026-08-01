@@ -93,7 +93,3 @@ Third, reports need an explicit “not proven” section. That is where experime
 Finally, the review system has to be lightweight enough to survive ordinary work. The ideal process is not the one with the most artifacts. It is the smallest process that reliably ties intent, code, behavior, and publication together.
 
 AstroAI is better because I can show what a change did, not merely say that it shipped. That is the standard I want for AI-assisted delivery: speed where generation helps, skepticism where claims are made, and a clean chain of evidence between the two.
-
-**Previous:** [Building AstroAI for Trust, Not AI Slop](/blog/building-astroai-for-trust-not-ai-slop)
-
-**Next:** [Building a Private Social Content Studio](/blog/building-a-private-social-content-studio)
