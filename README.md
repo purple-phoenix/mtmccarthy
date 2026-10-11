@@ -110,6 +110,7 @@ pushes to `main`.
 │   ├── study.html       # Interactive study tools index (/study)
 │   ├── study_tool.html  # Self-contained tool pages (/study/<slug>)
 │   ├── projects.html    # Projects showcase
+│   ├── travel.html      # Travel map + photo galleries (/travel)
 │   ├── resume.html      # Interactive resume
 │   ├── sitemap.xml      # Sitemap template (served at /sitemap.xml)
 │   └── feed.xml         # RSS feed template (served at /feed.xml)
