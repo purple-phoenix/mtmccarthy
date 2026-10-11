@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Travel — Matt McCarthy{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<style>
+    /* Page-scoped: map sizing and the photo gallery built by travel-map.js. */
+    #travel-map { height: 60vh; min-height: 360px; background: #e5e7eb; }
+    @media (min-width: 768px) { #travel-map { height: 70vh; } }
+    #travel-map:focus-within, .travel-card:focus-visible { outline: 3px solid #a78bfa; outline-offset: 2px; }
+    .travel-marker-label { font: 600 13px/1.2 Inter, system-ui, sans-serif; }
+    .leaflet-popup-content { margin: 10px 14px; font: 14px/1.4 Inter, system-ui, sans-serif; }
+    .leaflet-popup-content button { color: #7c3aed; font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; }
+
+    .travel-gallery[hidden] { display: none; }
+    .travel-gallery { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(17, 24, 39, 0.88); }
+    .travel-gallery-dialog { position: relative; display: flex; flex-direction: column; width: 100%; max-width: 1100px; max-height: 100%; background: #111827; color: #f9fafb; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); }
+    .travel-gallery-header { padding: 16px 56px 8px 20px; }
+    .travel-gallery-header h2 { margin: 0; font-size: 1.375rem; font-weight: 700; line-height: 1.2; }
+    .travel-gallery-header p { margin: 4px 0 0; color: #d1d5db; font-size: 0.9375rem; line-height: 1.5; }
+    .travel-gallery-meta { color: #a78bfa; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .travel-gallery-close { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border: 0; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 24px; line-height: 1; cursor: pointer; }
+    .travel-gallery-close:hover, .travel-gallery-close:focus-visible { background: rgba(255, 255, 255, 0.25); }
+    .travel-gallery-stage { position: relative; flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; background: #000; touch-action: pan-y; }
+    .travel-gallery-stage img { display: block; max-width: 100%; max-height: min(62vh, 700px); width: auto; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+    .travel-gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; border-radius: 9999px; background: rgba(255, 255, 255, 0.85); color: #111827; font-size: 22px; cursor: pointer; }
+    .travel-gallery-nav:hover, .travel-gallery-nav:focus-visible { background: #fff; }
+    .travel-gallery-nav[disabled] { opacity: 0.35; cursor: default; }
+    .travel-gallery-prev { left: 12px; }
+    .travel-gallery-next { right: 12px; }
+    .travel-gallery-caption { display: flex; justify-content: space-between; gap: 12px; padding: 10px 20px 0; font-size: 0.9375rem; color: #e5e7eb; }
+    .travel-gallery-counter { flex: none; color: #9ca3af; font-variant-numeric: tabular-nums; }
+    .travel-gallery-thumbs { display: flex; gap: 8px; padding: 12px 20px 16px; overflow-x: auto; scrollbar-width: thin; }
+    .travel-gallery-thumbs button { flex: none; width: 72px; height: 54px; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: #1f2937; cursor: pointer; opacity: 0.6; }
+    .travel-gallery-thumbs button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .travel-gallery-thumbs button[aria-current="true"] { border-color: #a78bfa; opacity: 1; }
+    .travel-gallery-thumbs button:hover, .travel-gallery-thumbs button:focus-visible { opacity: 1; }
+    .travel-gallery-album { display: inline-block; margin: 0 20px 16px; color: #c4b5fd; font-weight: 600; text-decoration: underline; }
+    .travel-gallery-album:hover { color: #fff; }
+    body.travel-gallery-open { overflow: hidden; }
+    @media (max-width: 640px) {
+        .travel-gallery { padding: 0; }
+        .travel-gallery-dialog { border-radius: 0; max-height: 100%; }
+        .travel-gallery-stage { flex: 0 1 auto; }
+        .travel-gallery-stage img { max-height: 55vh; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-purple-50 via-white to-blue-50 py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="text-sm font-semibold tracking-widest uppercase text-purple-600 mb-3">Travel</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            {{ trips|length }} place{{ '' if trips|length == 1 else 's' }} across {{ countries|length }} countr{{ 'y' if countries|length == 1 else 'ies' }}
+        </h1>
+        <p class="text-lg text-gray-600 max-w-3xl">Where I've been, on a map. Click a marker or a trip below to open its photos.</p>
+    </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+    <div id="travel-map" class="w-full rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+         role="region" aria-label="World map of trips" tabindex="0"
+         data-tile-url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+         data-marker-icon="{{ url_for('static', filename='vendor/leaflet/images/marker-icon.png') }}"></div>
+    <p class="text-xs text-gray-500 mt-2">Map tiles &copy; <a class="underline" href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> contributors.</p>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Trips</h2>
+    {% if trips %}
+    <ul id="travel-trips" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0">
+        {% for trip in trips %}
+        <li>
+            <a href="#{{ trip.slug }}" id="trip-{{ trip.slug }}" data-trip="{{ trip.slug }}"
+               class="travel-card block bg-white rounded-xl shadow-sm border border-gray-200 hover-lift overflow-hidden h-full">
+                <img src="{{ url_for('static', filename=trip.thumb) }}" alt="{{ trip.photos[0].alt or trip.name }}"
+                     class="w-full h-48 object-cover bg-gray-100" loading="lazy" width="400" height="300">
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="text-xl font-bold text-gray-900">{{ trip.name }}<span class="text-gray-400 font-normal">, {{ trip.country }}</span></h3>
+                        {% if trip.sample %}<span class="italic text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 whitespace-nowrap" title="Placeholder content — replace with a real trip">sample</span>{% endif %}
+                    </div>
+                    <p class="text-sm text-purple-600 font-medium mt-1">{{ trip.dates }} · {{ trip.photos|length }} photo{{ '' if trip.photos|length == 1 else 's' }}</p>
+                    <p class="text-gray-600 mt-3 leading-relaxed">{{ trip.summary }}</p>
+                </div>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-gray-600">No trips yet.</p>
+    {% endif %}
+</section>
+
+<script type="application/json" id="travel-data">{{ map_data|tojson }}</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/travel-map.js') }}"></script>
+{% endblock %}

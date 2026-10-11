@@ -96,7 +96,8 @@ pushes to `main`.
 │       └── tailwind.css # Tailwind source + site-wide custom CSS
 ├── content/
 │   ├── blog/            # Blog post markdown files
-│   └── projects.json    # Projects data
+│   ├── projects.json    # Projects data
+│   └── travel.json      # Trips for the /travel map (photos under static/images/travel/)
 ├── templates/           # Jinja2 HTML templates
 │   ├── base.html        # Base template
 │   ├── index.html       # Homepage
@@ -166,6 +167,34 @@ Edit `content/projects.json` to add or modify projects:
 ```
 
 The `slug` creates the detail page at `/projects/<slug>`. Link fields are optional, including `github_url`, `demo_url`, `paper_url`, and `blog_url`; omit any that are not public. If provided, `image_url` must point to a real file under `static/images/`.
+
+### Adding Trips (Travel page)
+
+`/travel` shows an interactive map (vendored Leaflet + OpenStreetMap tiles) built from `content/travel.json`; clicking a marker or trip card opens that trip's photo gallery. Photos are **copies committed in this repo** under `static/images/travel/<slug>/` — Google Photos can't be read by a website any more, so you export the photos you want and the site serves resized, metadata-free copies itself. No API keys.
+
+**One trip at a time** (`pip install -r requirements-dev.txt` first, for Pillow):
+
+1. In [Google Photos](https://photos.google.com), select the photos for the trip, open the ⋮ menu → **Download** (unzip if needed).
+2. Run the ingestion script on that folder:
+
+   ```bash
+   python scripts/add_trip.py --slug lisbon-2025 --name "Lisbon" --country "Portugal" \
+       --lat 38.72 --lng -9.14 --start 2025-05-10 --end 2025-05-17 \
+       --summary "A week of tiled streets and pastéis de nata." \
+       --album-url "https://photos.app.goo.gl/..." ~/Downloads/lisbon/*.jpg
+   ```
+
+   It resizes each photo to a 1600px WebP plus a 400px thumbnail, **strips all EXIF/GPS/camera metadata**, writes them to `static/images/travel/lisbon-2025/`, and appends (or replaces, by slug) the entry in `content/travel.json`. `--lat/--lng` default to the first photo's EXIF GPS and `--start/--end` to the EXIF capture dates. `--album-url` is optional and shows as "See the full album". Re-running with the same slug replaces that trip's photos — this is how you replace the shipped `"sample": true` placeholder trips (Boston, Lisbon).
+3. Optionally edit `alt`/`caption` text per photo in `content/travel.json`, then run `pytest -m "not e2e"` — the static-reference test fails if any referenced photo is missing — and commit the JSON and the new images.
+
+**Many trips at once from a Google Takeout export** (grouping is automatic):
+
+1. At [takeout.google.com](https://takeout.google.com) deselect all, select **Google Photos**, export, download, and unzip.
+2. `python scripts/import_takeout.py ~/Downloads/Takeout/Google\ Photos` reads each photo's capture time and GPS from the Takeout JSON sidecars (falling back to EXIF), reverse-geocodes **offline** against the bundled `scripts/places.json`, clusters photos into trips (same place within 150 km, gaps over 5 days start a new trip), skips photos with no location, and writes `content/travel-proposal.json` (git-ignored).
+3. Review the proposal: fix names/slugs, write a `summary` for each trip, delete trips you don't want, trim `photos` lists.
+4. `python scripts/import_takeout.py --apply` runs `add_trip.py` for every remaining trip. Tune with `--max-km` / `--gap-days`.
+
+Trip fields: `slug`, `name`, `country`, `lat`, `lng`, `date_start`, optional `date_end`, `summary`, `photos` (`src`, optional `thumb`, `alt`, `caption`, relative to `static/`), optional `album_url`, optional `sample`. The file is validated on load (ranges, ISO dates, slug format, non-empty photos).
 
 ### Customizing Personal Information
 

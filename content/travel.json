@@ -1,0 +1,64 @@
+[
+  {
+    "slug": "boston-2024",
+    "name": "Boston",
+    "country": "United States",
+    "lat": 42.3601,
+    "lng": -71.0589,
+    "date_start": "2024-10-04",
+    "date_end": "2024-10-06",
+    "summary": "Sample trip: a fall weekend walking the Freedom Trail and the Esplanade. Replace this entry with a real trip.",
+    "sample": true,
+    "photos": [
+      {
+        "src": "images/travel/boston-2024/01.webp",
+        "thumb": "images/travel/boston-2024/01-thumb.webp",
+        "alt": "Sample placeholder image 1 for Boston",
+        "caption": "Placeholder: skyline over the Charles River"
+      },
+      {
+        "src": "images/travel/boston-2024/02.webp",
+        "thumb": "images/travel/boston-2024/02-thumb.webp",
+        "alt": "Sample placeholder image 2 for Boston",
+        "caption": "Placeholder: brick row houses in Beacon Hill"
+      },
+      {
+        "src": "images/travel/boston-2024/03.webp",
+        "thumb": "images/travel/boston-2024/03-thumb.webp",
+        "alt": "Sample placeholder image 3 for Boston",
+        "caption": "Placeholder: fall colors in the Public Garden"
+      }
+    ]
+  },
+  {
+    "slug": "lisbon-2025",
+    "name": "Lisbon",
+    "country": "Portugal",
+    "lat": 38.7223,
+    "lng": -9.1393,
+    "date_start": "2025-05-10",
+    "date_end": "2025-05-17",
+    "summary": "Sample trip: a week of tiled streets, tram 28, and pastéis de nata in Belém. Replace this entry with a real trip.",
+    "sample": true,
+    "photos": [
+      {
+        "src": "images/travel/lisbon-2025/01.webp",
+        "thumb": "images/travel/lisbon-2025/01-thumb.webp",
+        "alt": "Sample placeholder image 1 for Lisbon",
+        "caption": "Placeholder: tiled facades in Alfama"
+      },
+      {
+        "src": "images/travel/lisbon-2025/02.webp",
+        "thumb": "images/travel/lisbon-2025/02-thumb.webp",
+        "alt": "Sample placeholder image 2 for Lisbon",
+        "caption": "Placeholder: tram 28 climbing toward Graça"
+      },
+      {
+        "src": "images/travel/lisbon-2025/03.webp",
+        "thumb": "images/travel/lisbon-2025/03-thumb.webp",
+        "alt": "Sample placeholder image 3 for Lisbon",
+        "caption": "Placeholder: the Tagus from Belém"
+      }
+    ]
+  }
+]
