@@ -1,4 +1,4 @@
-from flask import Flask, render_template, abort, request, Response
+from flask import Flask, render_template, abort, request, Response, url_for
 import os
 import markdown
 from datetime import datetime, timezone
@@ -41,6 +41,7 @@ def inject_ga_measurement_id():
 # Configuration
 BLOG_DIR = 'content/blog'
 PROJECTS_FILE = 'content/projects.json'
+TRAVEL_FILE = 'content/travel.json'
 
 BLOG_SERIES = {
     'astroai-building-for-trust': {
@@ -130,6 +131,8 @@ PAGE_META_DESCRIPTIONS = {
                          'long-term physical development.',
     'study': 'Interactive, browser-based study tools for constraint satisfaction, Bayesian '
              'networks, game theory, and first-order logic.',
+    'travel': 'Places Matt McCarthy has traveled, on an interactive world map with a photo '
+              'gallery for each trip.',
 }
 
 STUDY_TOOLS = {
@@ -234,6 +237,91 @@ def load_projects():
     
     with open(PROJECTS_FILE, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+TRAVEL_REQUIRED_FIELDS = ('slug', 'name', 'country', 'lat', 'lng', 'date_start', 'summary', 'photos')
+_ISO_DATE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+_SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
+
+def _validate_trip(trip, index):
+    """Raise ValueError describing the first problem with one travel.json entry."""
+    where = f'travel.json trip #{index}'
+    if not isinstance(trip, dict):
+        raise ValueError(f'{where} must be an object')
+    missing = [key for key in TRAVEL_REQUIRED_FIELDS if key not in trip]
+    if missing:
+        raise ValueError(f"{where} is missing {', '.join(missing)}")
+    where = f"travel.json trip '{trip['slug']}'"
+    if not isinstance(trip['slug'], str) or not _SLUG.match(trip['slug']):
+        raise ValueError(f'{where} has an invalid slug (use lowercase letters, digits, hyphens)')
+    for key in ('name', 'country', 'summary'):
+        if not isinstance(trip[key], str) or not trip[key].strip():
+            raise ValueError(f'{where} needs a non-empty {key}')
+    for key, limit in (('lat', 90), ('lng', 180)):
+        value = trip[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or abs(value) > limit:
+            raise ValueError(f'{where} has an out-of-range {key}: {value!r}')
+    for key in ('date_start', 'date_end'):
+        value = trip.get(key)
+        if key == 'date_end' and value is None:
+            continue
+        if not isinstance(value, str) or not _ISO_DATE.match(value):
+            raise ValueError(f'{where} {key} must be an ISO date (YYYY-MM-DD), got {value!r}')
+        datetime.strptime(value, '%Y-%m-%d')  # rejects e.g. month 13
+    if trip.get('date_end') and trip['date_end'] < trip['date_start']:
+        raise ValueError(f'{where} ends before it starts')
+    photos = trip['photos']
+    if not isinstance(photos, list) or not photos:
+        raise ValueError(f'{where} needs at least one photo')
+    for photo in photos:
+        if not isinstance(photo, dict) or not isinstance(photo.get('src'), str) or not photo['src']:
+            raise ValueError(f'{where} has a photo without a src')
+        if photo['src'].startswith('/') or '..' in photo['src']:
+            raise ValueError(f"{where} photo src must be relative to static/, got {photo['src']!r}")
+    album_url = trip.get('album_url')
+    if album_url is not None and not (isinstance(album_url, str)
+                                      and album_url.startswith(('http://', 'https://'))):
+        raise ValueError(f'{where} album_url must be an absolute http(s) URL')
+
+def load_trips():
+    """Load and validate trips from content/travel.json, newest first.
+
+    Every trip is checked on load so a malformed entry fails loudly (and in
+    tests) instead of rendering a broken map. Each trip gains a 'thumb'
+    (first photo's thumbnail or full image) and parsed start/end dates.
+    """
+    if not os.path.exists(TRAVEL_FILE):
+        return []
+    with open(TRAVEL_FILE, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise ValueError('travel.json must be a list of trips')
+    trips = []
+    seen = set()
+    for index, raw in enumerate(data, start=1):
+        _validate_trip(raw, index)
+        if raw['slug'] in seen:
+            raise ValueError(f"travel.json has duplicate slug '{raw['slug']}'")
+        seen.add(raw['slug'])
+        trip = dict(raw)
+        trip['sample'] = bool(raw.get('sample', False))
+        trip['start'] = datetime.strptime(raw['date_start'], '%Y-%m-%d')
+        trip['end'] = datetime.strptime(raw['date_end'], '%Y-%m-%d') if raw.get('date_end') else None
+        first = raw['photos'][0]
+        trip['thumb'] = first.get('thumb') or first['src']
+        trips.append(trip)
+    trips.sort(key=lambda t: t['start'], reverse=True)
+    return trips
+
+def format_trip_dates(trip):
+    """'May 10 – 17, 2025', 'Dec 28, 2024 – Jan 3, 2025', or 'May 10, 2025'."""
+    start, end = trip['start'], trip.get('end')
+    if not end or end == start:
+        return start.strftime('%b %-d, %Y')
+    if start.year != end.year:
+        return f"{start.strftime('%b %-d, %Y')} – {end.strftime('%b %-d, %Y')}"
+    if start.month != end.month:
+        return f"{start.strftime('%b %-d')} – {end.strftime('%b %-d, %Y')}"
+    return f"{start.strftime('%b %-d')} – {end.strftime('%-d, %Y')}"
 
 def format_time_control(time_control_str):
     """Convert time control to minutes format (e.g., 900+10 -> 15+10)
@@ -502,6 +590,27 @@ def study_tool(slug):
     if not tool:
         abort(404)
     return render_template('study_tool.html', slug=slug, tool=tool, tools=STUDY_TOOLS)
+
+@app.route('/travel')
+def travel():
+    trips = load_trips()
+    countries = sorted({trip['country'] for trip in trips})
+    for trip in trips:
+        trip['dates'] = format_trip_dates(trip)
+    # Only what the map and gallery need; photo paths are made absolute here
+    # so the JS never has to know about Flask's static URL layout.
+    map_data = [{
+        'slug': t['slug'], 'name': t['name'], 'country': t['country'],
+        'lat': t['lat'], 'lng': t['lng'], 'dates': t['dates'], 'summary': t['summary'],
+        'sample': t['sample'], 'album_url': t.get('album_url'),
+        'photos': [{
+            'src': url_for('static', filename=p['src']),
+            'thumb': url_for('static', filename=p.get('thumb') or p['src']),
+            'alt': p.get('alt', ''), 'caption': p.get('caption', ''),
+        } for p in t['photos']],
+    } for t in trips]
+    return render_template('travel.html', trips=trips, countries=countries,
+                           map_data=map_data)
 
 @app.route('/resume')
 def resume():

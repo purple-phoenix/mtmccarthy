@@ -1,7 +1,7 @@
 """No dangling static references.
 
-Walks templates, blog front matter, post bodies, and projects.json for
-references to files under static/ and asserts each one exists. This is the
+Walks templates, blog front matter, post bodies, projects.json, and
+travel.json for references to files under static/ and asserts each one exists. This is the
 class of bug behind previously shipped broken images: templates hide missing
 images via onerror fallbacks, so nothing else catches them.
 """
@@ -67,3 +67,16 @@ def test_projects_json_static_references_exist():
                 walk(v, source)
 
     walk(projects, 'projects.json')
+
+
+def test_travel_json_photos_exist():
+    trips = json.loads((PROJECT_ROOT / 'content' / 'travel.json').read_text(encoding='utf-8'))
+    assert trips, 'expected trips in content/travel.json'
+    checked = 0
+    for trip in trips:
+        for photo in trip.get('photos', []):
+            for key in ('src', 'thumb'):
+                if photo.get(key):
+                    _assert_static_exists(photo[key], f"travel.json trip '{trip.get('slug')}'")
+                    checked += 1
+    assert checked > 0, 'expected trips to reference photos'

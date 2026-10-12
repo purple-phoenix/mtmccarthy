@@ -1,0 +1,6 @@
+Leaflet 1.9.4 (https://leafletjs.com), BSD-2-Clause (see LICENSE).
+Vendored from the npm tarball leaflet-1.9.4.tgz
+(sha256 84c65a256e50657896f54c33bd857b6849ebe94c817803be818bf32a3dde0b77):
+dist/leaflet.js, dist/leaflet.css, dist/images/marker-*.png.
+Served locally so the site makes no CDN requests; only OSM tiles are external.
+To upgrade: download the new tarball, copy the same files, update this note.
