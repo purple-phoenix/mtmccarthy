@@ -60,6 +60,25 @@
     ]
   },
   {
+    "slug": "jtworldteacher",
+    "title": "J.T. Worldteacher",
+    "description": "A podcast and publishing platform for J.T. Worldteacher's \"Astrology & Simulation Theory\" show. Built with Astro and deployed to GitHub Pages, with a PSP-1 compliant RSS feed, Cloudflare R2 audio hosting, and a workflow that turns recorded X Spaces into fully documented podcast episodes.",
+    "tags": ["Astro", "TypeScript", "RSS", "Cloudflare R2", "GitHub Pages", "Podcasting", "Web Development"],
+    "status": "Active",
+    "featured": true,
+    "github_url": "https://github.com/purple-phoenix/jtworldteacher",
+    "demo_url": "https://jtworldteacher.com",
+    "image_url": "/static/images/jtworldteacher-feature.png",
+    "highlights": [
+      "Astro 5 static site with a custom editorial design and dark theme",
+      "Podcast RSS feed with iTunes, atom, and podcast namespaces (PSP-1 compliant)",
+      "Audio hosted on Cloudflare R2 behind a custom media subdomain",
+      "Markdown content collection for 20+ episodes with full show notes",
+      "Automated GitHub Actions deployment to GitHub Pages with custom domain and HTTPS",
+      "Repeatable X Space to podcast publishing workflow with rclone uploads"
+    ]
+  },
+  {
     "slug": "mattmccarthy-dev",
     "title": "mattmccarthy.dev",
     "description": "A modern, responsive personal website built with Flask and Tailwind CSS featuring blog, projects showcase, and interactive resume.",
