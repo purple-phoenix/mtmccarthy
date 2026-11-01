@@ -169,6 +169,10 @@ Edit `content/projects.json` to add or modify projects:
 
 The `slug` creates the detail page at `/projects/<slug>`. Link fields are optional, including `github_url`, `demo_url`, `paper_url`, and `blog_url`; omit any that are not public. If provided, `image_url` must point to a real file under `static/images/`.
 
+`repo_visibility` (`public`, `private`, or `local`) records whether the code can be linked: `github_url` is only allowed when it is `public` (check with `gh repo view <owner/repo> --json visibility`). `related` is an optional list of other project slugs shown at the bottom of the detail page.
+
+**Case studies.** Adding a `case_study` object turns a project into a case study: it moves to the top of `/projects`, gets the case-study layout on its detail page, and its `featured` flag puts it on the home page. Required: `strengths` (keys of `CASE_STUDY_STRENGTHS` in `app.py`), `summary`, and non-empty string lists `problem`, `constraints`, `built`, `verification`, `results`. Optional: `timeline`, `repo_note` (shown for private repos), `metrics` (`[{"value": "128", "label": "tests ..."}]`), `delivery` (how coding agents were used), and `todos`, which render as a visible amber TODO box until the real number is supplied. Use only numbers you can trace to a repo, CI run, or doc; anything else goes in `todos`. `load_projects()` validates every entry and raises on a malformed one, so `pytest` catches it.
+
 ### Adding Trips (Travel page)
 
 `/travel` shows an interactive map (vendored Leaflet + OpenStreetMap tiles) built from `content/travel.json`; clicking a marker or trip card opens that trip's photo gallery. Photos are **copies committed in this repo** under `static/images/travel/<slug>/` — Google Photos can't be read by a website any more, so you export the photos you want and the site serves resized, metadata-free copies itself. No API keys.

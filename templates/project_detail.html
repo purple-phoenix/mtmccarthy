@@ -25,6 +25,9 @@
                 {{ project.status }}
             </span>
             {% endif %}
+            {% if project.case_study %}
+            <span class="px-3 py-1 bg-white text-purple-700 rounded-full text-xs font-bold">Case study</span>
+            {% endif %}
             {% if project.featured %}
             <span class="px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">Featured</span>
             {% endif %}
@@ -41,6 +44,127 @@
 </section>
 
 <!-- Main Content -->
+{% if project.case_study %}
+{% set study = project.case_study %}
+<section class="py-16 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <article class="lg:col-span-2 case-study">
+                <p class="text-xl text-purple-700 font-medium mb-4">{{ study.summary }}</p>
+                <p class="text-gray-700 text-lg leading-relaxed mb-8">{{ project.description }}</p>
+
+                {% if study.metrics %}
+                <dl class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+                    {% for metric in study.metrics %}
+                    <div class="rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 p-4">
+                        <dt class="sr-only">{{ metric.label }}</dt>
+                        <dd class="text-2xl font-bold text-gray-900">{{ metric.value }}</dd>
+                        <dd class="text-xs text-gray-600 leading-snug mt-1">{{ metric.label }}</dd>
+                    </div>
+                    {% endfor %}
+                </dl>
+                {% endif %}
+
+                {% set sections = [
+                    ('problem', 'The problem', 'fa-circle-question', false),
+                    ('constraints', 'Constraints', 'fa-ruler-combined', true),
+                    ('built', 'What I built', 'fa-screwdriver-wrench', true),
+                    ('verification', "How it's verified", 'fa-vial-circle-check', true),
+                    ('results', 'Results', 'fa-chart-line', true),
+                    ('delivery', 'How coding agents fit in', 'fa-robot', true),
+                ] %}
+                {% for key, heading, icon, as_list in sections %}
+                {% if study[key] %}
+                <section id="{{ key }}" class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                        <i class="fas {{ icon }} text-purple-600 text-xl"></i>{{ heading }}
+                    </h2>
+                    {% if as_list %}
+                    <ul class="space-y-3">
+                        {% for item in study[key] %}
+                        <li class="flex items-start gap-3">
+                            <span class="mt-2 flex-shrink-0 w-2 h-2 rounded-full bg-purple-500"></span>
+                            <span class="text-gray-700 leading-relaxed">{{ item }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    {% for paragraph in study[key] %}
+                    <p class="text-gray-700 text-lg leading-relaxed mb-4">{{ paragraph }}</p>
+                    {% endfor %}
+                    {% endif %}
+                    {% if key == 'results' and study.todos %}
+                    <div class="mt-6 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 p-5" data-todo>
+                        <p class="font-bold text-amber-900 mb-2"><i class="fas fa-triangle-exclamation mr-2"></i>TODO (Matt): numbers to add</p>
+                        <ul class="list-disc list-inside space-y-1 text-amber-900">
+                            {% for todo in study.todos %}
+                            <li>TODO: {{ todo }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </section>
+                {% endif %}
+                {% endfor %}
+            </article>
+
+            <!-- Sidebar -->
+            <aside class="lg:col-span-1">
+                <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 sticky top-24 space-y-6">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-2">Shows</h3>
+                        <ul class="space-y-2">
+                            {% for key in study.strengths %}
+                            <li><a href="/projects#strength-{{ key }}" class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold hover:bg-purple-200">{{ strengths[key] }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% if study.timeline %}
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">When</h3>
+                        <p class="text-gray-800">{{ study.timeline }}</p>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-2">On this page</h3>
+                        <ul class="space-y-1 text-sm">
+                            {% for key, heading, icon, as_list in sections %}
+                            {% if study[key] %}<li><a href="#{{ key }}" class="text-purple-700 hover:underline">{{ heading }}</a></li>{% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% if project.demo_url %}
+                        <a href="{{ project.demo_url }}" target="_blank" rel="noopener"
+                           class="flex items-center gap-3 px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Live site</span>
+                        </a>
+                        {% endif %}
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" target="_blank" rel="noopener"
+                           class="flex items-center gap-3 px-4 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-github"></i>
+                            <span>View Code</span>
+                        </a>
+                        {% endif %}
+                        {% if project.blog_url %}
+                        <a href="{{ project.blog_url }}"
+                           class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-book"></i>
+                            <span>Read Article</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% if study.repo_note %}
+                    <p class="text-sm text-gray-600"><i class="fas fa-lock mr-2 text-gray-400"></i>{{ study.repo_note }}</p>
+                    {% endif %}
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% else %}
 <section class="py-16 bg-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -101,6 +225,25 @@
         </div>
     </div>
 </section>
+
+{% endif %}
+
+{% if related %}
+<!-- Related -->
+<section class="py-12 bg-white border-t border-gray-100">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Related case studies</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for other in related %}
+            <a href="/projects/{{ other.slug }}" class="block rounded-xl border border-gray-100 shadow hover-lift p-5">
+                <h3 class="font-bold text-gray-900 mb-2">{{ other.title }}</h3>
+                <p class="text-sm text-gray-600">{{ other.case_study.summary if other.case_study else other.description }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- Back CTA -->
 <section class="py-12 bg-gray-50">
