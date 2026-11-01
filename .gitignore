@@ -39,3 +39,4 @@ node_modules/
 
 # Travel importer output (local review file, see scripts/import_takeout.py)
 content/travel-proposal.json
+.vercel

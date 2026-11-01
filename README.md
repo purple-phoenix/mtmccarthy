@@ -46,8 +46,8 @@ A modern, professional personal website built with Flask featuring a blog, proje
 
    The app reads its Flask session key from the `SECRET_KEY` environment
    variable. When running locally with `python app.py` you can leave it
-   unset and an ephemeral key is generated for you. In production (e.g.
-   `gunicorn app:app`) it is required — the app refuses to start without it:
+   unset and an ephemeral key is generated for you. In production (Vercel imports
+   `app.py`'s `app`) it is required; the app refuses to start without it:
    ```bash
    export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
    ```
@@ -228,9 +228,9 @@ New Tailwind classes must appear in the content globs in `tailwind.config.js` (t
 The app refuses to start in production without the `SECRET_KEY` environment
 variable (see step 4 of Installation) — set it on whichever platform you use.
 
-### Deploying to Render (Production)
+### Deploying to Vercel (Production)
 
-This site is deployed on Render with gunicorn. There is no `Procfile` or `runtime.txt` — the Start Command (`gunicorn app:app`) and Python version are configured in the Render dashboard. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full guide.
+Production runs on the Vercel Hobby project `matt-mccarthys-projects/mtmccarthy`, Git-linked to this repository. Pushes to `main` deploy to production; other branches get previews behind Vercel Authentication. The **Flask** Framework Preset runs `app.py`'s `app` with dependencies from `requirements.txt`, without a `vercel.json` or gunicorn start command. Set `SECRET_KEY` as a sensitive variable for Production + Preview in the project's Settings → Environment Variables. See [DEPLOYMENT.md](DEPLOYMENT.md) for domains, preview checks, and rollback instructions.
 
 Absolute URLs (canonicals, OG tags, sitemap, RSS feed) are built from `SITE_URL`, which defaults to `https://mattmccarthy.dev` — set the `SITE_URL` environment variable if the site is served from a different origin.
 
