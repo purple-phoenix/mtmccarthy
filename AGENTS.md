@@ -6,16 +6,16 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Running the app
 
-- Flask app, entry point `app.py`; it serves on **port 8000** (`python app.py`), not Flask's default 5000. Production uses gunicorn on Render (Start Command in the Render dashboard — there is intentionally no `Procfile`, `runtime.txt`, or `vercel.json`).
+- Flask app, entry point `app.py`; it serves on **port 8000** (`python app.py`), not Flask's default 5000. Production uses Vercel's **Flask** Framework Preset, which runs `app.py`'s `app` with zero configuration. No `vercel.json`, `Procfile`, or `runtime.txt` is needed; gunicorn remains in `requirements.txt` but is not the production server.
 - Dependencies are in `requirements.txt`; install into a venv (`python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`).
 - `SECRET_KEY` env var is required whenever `app.py` is *imported* (gunicorn, `flask run`, tests); only `python app.py` (`__main__`) generates an ephemeral dev key. Set `SECRET_KEY=anything` when importing the app in scripts/tests.
 - Port 8000 is often already occupied on the dev machine by a long-running instance of this site. For testing, run `flask --app app run --no-reload -p <other-port>` — a 200 from port 8000 may be coming from the old process, not your code.
 
 ## Deploy
 
-- **Merging to `main` is a production deploy**: Render auto-deploys `main` on push (DEPLOYMENT.md, "Automatic Deployments"). Build is `pip install -r requirements.txt`, start is `gunicorn app:app`; `SECRET_KEY` is required in the Render dashboard, `GA_MEASUREMENT_ID` and `SITE_URL` are optional. Never merge or push to `main` without the owner's go-ahead; work on a branch and open a PR (CI runs both test jobs on it).
+- **Merging to `main` is a production deploy**: Vercel auto-deploys `main` on push to `matt-mccarthys-projects/mtmccarthy` (Hobby plan; see DEPLOYMENT.md). Python dependencies come from `requirements.txt`. In Vercel → Project → Settings → Environment Variables, `SECRET_KEY` is sensitive and required for Production + Preview; `GA_MEASUREMENT_ID` and `SITE_URL` are optional and currently unset (`SITE_URL` defaults to `https://mattmccarthy.dev`). Never merge or push to `main` without the owner's go-ahead; work on a branch and open a PR (CI runs both test jobs on it).
 - Quick render check of every page before a PR: start the app on a spare port, then request each `<loc>` from `/sitemap.xml` and expect 200 (it lists every fixed route plus all project, post, category, series, and study-tool pages).
-- **Every PR links a preview that opens on the changed page, plus 2–4 numbered steps to see the change.** Vercel builds a branch preview for each PR (the `vercel[bot]` comment has the URL); link the changed page on it (e.g. `…vercel.app/projects/<slug>`), not the home page. Previews sit behind Vercel login (Matt is signed in), so check the page yourself with `vercel curl` or the local app on port 8000 before linking it.
+- **Every PR links a preview that opens on the changed page, plus 2–4 numbered steps to see the change.** Vercel builds a branch preview for each PR (the `vercel[bot]` comment has the URL). With the Flask preset, previews now render application pages; link the changed page on it (e.g. `…vercel.app/projects/<slug>`), not the home page. Previews sit behind Vercel Authentication (Matt is signed in), so check the preview itself with `vercel curl <path> --deployment <url-or-id>` before linking it. For the quick render check against a preview, request `/sitemap.xml`, then each `<loc>` path on that same deployment (the sitemap uses the canonical production origin). Keep local `.vercel/` project metadata uncommitted.
 
 ## Testing
 
@@ -43,7 +43,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## CSS / Tailwind build
 
-- Tailwind is a **committed, prebuilt** stylesheet: `static/css/main.css`, built by the Tailwind CLI (v3) from `assets/css/tailwind.css` — no CDN script, and no Node on the server. The deploy (Render, pip-only Build Command) serves the committed file, so **rebuild and commit `static/css/main.css` whenever you add/change Tailwind classes or edit `assets/css/tailwind.css`**: `npm install && npm run build:css` (`npm run watch:css` while developing).
+- Tailwind is a **committed, prebuilt** stylesheet: `static/css/main.css`, built by the Tailwind CLI (v3) from `assets/css/tailwind.css`, with no CDN script and no Node on the server. The Vercel Flask deployment serves the committed file without a Node build, so **rebuild and commit `static/css/main.css` whenever you add/change Tailwind classes or edit `assets/css/tailwind.css`**: `npm install && npm run build:css` (`npm run watch:css` while developing).
 - Purge content globs live in `tailwind.config.js` and cover `templates/`, `static/js/` (the visualizations build HTML with utility classes in JS strings), `content/blog/*.md` (posts can embed raw HTML), and `content/projects.json`. If Tailwind classes start appearing somewhere new, add the path there — a class missing from the globs silently renders unstyled.
 - Class names must appear as complete string literals to survive purging — never build them by concatenation (`'bg-' + color` breaks; `condition ? 'bg-green-400' : 'bg-orange-400'` is fine).
 - Site-wide custom CSS (`.blog-content`, `.gradient-text`, codehilite colors, viz styles) lives in `assets/css/tailwind.css` after the `@tailwind` directives — not in a `<style>` block in `base.html`. Page-scoped styles (e.g. resume timeline) stay in that template's `extra_head` block.
