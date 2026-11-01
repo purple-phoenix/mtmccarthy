@@ -15,6 +15,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - **Merging to `main` is a production deploy**: Render auto-deploys `main` on push (DEPLOYMENT.md, "Automatic Deployments"). Build is `pip install -r requirements.txt`, start is `gunicorn app:app`; `SECRET_KEY` is required in the Render dashboard, `GA_MEASUREMENT_ID` and `SITE_URL` are optional. Never merge or push to `main` without the owner's go-ahead; work on a branch and open a PR (CI runs both test jobs on it).
 - Quick render check of every page before a PR: start the app on a spare port, then request each `<loc>` from `/sitemap.xml` and expect 200 (it lists every fixed route plus all project, post, category, series, and study-tool pages).
+- **Every PR links a preview that opens on the changed page, plus 2–4 numbered steps to see the change.** Vercel builds a branch preview for each PR (the `vercel[bot]` comment has the URL); link the changed page on it (e.g. `…vercel.app/projects/<slug>`), not the home page. Previews sit behind Vercel login (Matt is signed in), so check the page yourself with `vercel curl` or the local app on port 8000 before linking it.
 
 ## Testing
 
