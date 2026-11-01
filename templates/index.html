@@ -90,8 +90,8 @@
 <section class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold mb-4 gradient-text">Featured Projects</h2>
-            <p class="text-gray-600">Some of my recent work and creations</p>
+            <h2 class="text-4xl font-bold mb-4 gradient-text">Case Studies</h2>
+            <p class="text-gray-600">Evaluation and test infrastructure, and real work shipped with coding agents</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for project in projects %}
@@ -102,6 +102,12 @@
                 <div class="h-48 bg-gradient-to-br from-purple-400 to-blue-500 relative">
                     {% if project.image_url %}
                     <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
+                    {% elif project.case_study and project.case_study.metrics %}
+                    {% set metric = project.case_study.metrics[0] %}
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-6">
+                        <span class="text-4xl font-bold">{{ metric.value }}</span>
+                        <span class="text-sm text-white/90 mt-2">{{ metric.label }}</span>
+                    </div>
                     {% endif %}
                 </div>
                 {% if project.slug %}
@@ -109,7 +115,7 @@
                 {% endif %}
                 <div class="p-6">
                     <h3 class="text-xl font-bold mb-2 text-gray-900">{{ project.title }}</h3>
-                    <p class="text-gray-600 mb-4">{{ project.description }}</p>
+                    <p class="text-gray-600 mb-4">{{ project.case_study.summary if project.case_study else project.description }}</p>
                     <div class="flex flex-wrap gap-2 mb-4">
                         {% for tag in project.tags[:3] %}
                         <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{{ tag }}</span>
@@ -122,13 +128,18 @@
                         </a>
                         {% endif %}
                         {% if project.demo_url %}
-                        <a href="{{ project.demo_url }}" target="_blank" class="text-gray-600 hover:text-purple-600">
-                            <i class="fas fa-external-link-alt"></i> Demo
+                        <a href="{{ project.demo_url }}" target="_blank" rel="noopener" class="text-gray-600 hover:text-purple-600">
+                            <i class="fas fa-external-link-alt"></i> Live site
                         </a>
                         {% endif %}
                         {% if project.paper_url %}
                         <a href="{{ project.paper_url }}" target="_blank" class="text-gray-600 hover:text-purple-600">
                             <i class="fas fa-file-pdf"></i> Paper
+                        </a>
+                        {% endif %}
+                        {% if project.case_study %}
+                        <a href="/projects/{{ project.slug }}" class="text-purple-700 font-semibold hover:underline ml-auto">
+                            Case study <i class="fas fa-arrow-right"></i>
                         </a>
                         {% endif %}
                     </div>
@@ -138,7 +149,7 @@
         </div>
         <div class="text-center mt-12">
             <a href="/projects" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors hover-lift">
-                View All Projects
+                All Case Studies &amp; Projects
             </a>
         </div>
     </div>

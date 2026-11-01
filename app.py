@@ -120,8 +120,9 @@ PAGE_META_DESCRIPTIONS = {
              'interests that shape how he builds software.',
     'blog': 'Articles by Matt McCarthy on software engineering, AI tooling, algorithms, and '
             'lessons learned building real systems.',
-    'projects': 'Selected software projects by Matt McCarthy, from machine learning '
-                'experiments to production web applications.',
+    'projects': 'Case studies by Matt McCarthy on evaluation and test infrastructure and on '
+                'shipping real software with coding agents: problem, constraints, build, '
+                'verification, and results.',
     'resume': 'Resume of Matt McCarthy: professional experience, skills, and education in '
               'software engineering.',
     'chess': 'Matt McCarthy on chess: recent rated games from Chess.com and Lichess.',
@@ -230,13 +231,64 @@ def get_blog_series(slug, posts=None):
                        if post_slug in posts_by_slug]
     return series
 
+# Strengths a case study can demonstrate, keyed as used in projects.json.
+CASE_STUDY_STRENGTHS = {
+    'evaluation': 'Evaluation & test infrastructure',
+    'agents': 'Delivery with coding agents',
+}
+CASE_STUDY_SECTIONS = ('problem', 'constraints', 'built', 'verification', 'results')
+REPO_VISIBILITIES = ('public', 'private', 'local')
+
+def _validate_project(project, slugs):
+    """Raise ValueError describing the first problem with one projects.json entry."""
+    where = f"projects.json project '{project.get('slug') or project.get('title')}'"
+    visibility = project.get('repo_visibility')
+    if visibility is not None and visibility not in REPO_VISIBILITIES:
+        raise ValueError(f'{where} has an unknown repo_visibility: {visibility!r}')
+    # Only link code that is actually public; private/local repos are described, not linked.
+    if project.get('github_url') and visibility != 'public':
+        raise ValueError(f"{where} links github_url but repo_visibility is {visibility!r}, not 'public'")
+    for related in project.get('related', []):
+        if related not in slugs or related == project.get('slug'):
+            raise ValueError(f'{where} has an unknown related slug: {related!r}')
+    study = project.get('case_study')
+    if study is None:
+        return
+    if 'related' in study:
+        raise ValueError(f'{where} puts related inside case_study; it belongs at the top level')
+    if not project.get('slug'):
+        raise ValueError(f'{where} is a case study and needs a slug')
+    if visibility is None:
+        raise ValueError(f'{where} is a case study and needs a repo_visibility')
+    if not isinstance(study.get('summary'), str) or not study['summary'].strip():
+        raise ValueError(f'{where} case_study needs a summary')
+    for section in CASE_STUDY_SECTIONS:
+        items = study.get(section)
+        if not isinstance(items, list) or not items or not all(
+                isinstance(item, str) and item.strip() for item in items):
+            raise ValueError(f'{where} case_study.{section} must be a non-empty list of strings')
+    strengths = study.get('strengths')
+    if not strengths or any(s not in CASE_STUDY_STRENGTHS for s in strengths):
+        raise ValueError(f'{where} case_study.strengths must use {sorted(CASE_STUDY_STRENGTHS)}')
+    for metric in study.get('metrics', []):
+        if not (isinstance(metric, dict) and metric.get('value') and metric.get('label')):
+            raise ValueError(f'{where} case_study.metrics entries need a value and a label')
+
 def load_projects():
-    """Load projects from JSON file"""
+    """Load projects from content/projects.json, validating every entry.
+
+    A malformed case study (missing section, unknown strength, a code link
+    for a repo that isn't public) raises, so tests catch it before deploy.
+    """
     if not os.path.exists(PROJECTS_FILE):
         return []
     
     with open(PROJECTS_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        projects = json.load(f)
+    slugs = {p.get('slug') for p in projects if p.get('slug')}
+    for project in projects:
+        _validate_project(project, slugs)
+    return projects
 
 TRAVEL_REQUIRED_FIELDS = ('slug', 'name', 'country', 'lat', 'lng', 'date_start', 'summary', 'photos')
 _ISO_DATE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
@@ -570,7 +622,11 @@ def blog_post(slug):
 @app.route('/projects')
 def projects():
     projects_list = load_projects()
-    return render_template('projects.html', projects=projects_list)
+    case_studies = [p for p in projects_list if p.get('case_study')]
+    other_projects = [p for p in projects_list if not p.get('case_study')]
+    return render_template('projects.html', case_studies=case_studies,
+                           other_projects=other_projects,
+                           strengths=CASE_STUDY_STRENGTHS)
 
 @app.route('/projects/<slug>')
 def project_detail(slug):
@@ -578,7 +634,10 @@ def project_detail(slug):
     project = next((p for p in projects_list if p.get('slug') == slug), None)
     if not project:
         abort(404)
-    return render_template('project_detail.html', project=project)
+    by_slug = {p['slug']: p for p in projects_list if p.get('slug')}
+    related = [by_slug[s] for s in project.get('related', [])]
+    return render_template('project_detail.html', project=project, related=related,
+                           strengths=CASE_STUDY_STRENGTHS)
 
 @app.route('/study')
 def study():

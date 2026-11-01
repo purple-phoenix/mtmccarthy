@@ -11,6 +11,11 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - `SECRET_KEY` env var is required whenever `app.py` is *imported* (gunicorn, `flask run`, tests); only `python app.py` (`__main__`) generates an ephemeral dev key. Set `SECRET_KEY=anything` when importing the app in scripts/tests.
 - Port 8000 is often already occupied on the dev machine by a long-running instance of this site. For testing, run `flask --app app run --no-reload -p <other-port>` — a 200 from port 8000 may be coming from the old process, not your code.
 
+## Deploy
+
+- **Merging to `main` is a production deploy**: Render auto-deploys `main` on push (DEPLOYMENT.md, "Automatic Deployments"). Build is `pip install -r requirements.txt`, start is `gunicorn app:app`; `SECRET_KEY` is required in the Render dashboard, `GA_MEASUREMENT_ID` and `SITE_URL` are optional. Never merge or push to `main` without the owner's go-ahead; work on a branch and open a PR (CI runs both test jobs on it).
+- Quick render check of every page before a PR: start the app on a spare port, then request each `<loc>` from `/sitemap.xml` and expect 200 (it lists every fixed route plus all project, post, category, series, and study-tool pages).
+
 ## Testing
 
 - `pip install -r requirements-dev.txt`, then `pytest -m "not e2e"` for the fast suite; `python -m playwright install chromium` once, then `pytest -m e2e` for the browser smoke tests. CI (`.github/workflows/ci.yml`) runs both on PRs and pushes to main.
@@ -22,7 +27,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 ## Content pipeline
 
 - Blog posts are Markdown files in `content/blog/` with YAML front-matter (`title`, `date`, `category`, `excerpt`, `read_time`, optional `image_url`). The slug is the filename.
-- Projects come from `content/projects.json`.
+- Projects come from `content/projects.json`, validated on load by `_validate_project()` in `app.py` (bad entries raise). Entries with a `case_study` object are the portfolio's case studies (problem / constraints / built / verification / results, plus optional metrics, delivery, `todos`); the field reference is in the README's "Adding Projects". Rules: every metric must trace to a source repo, CI run, or doc, and unknown numbers go in `todos` (rendered as a visible TODO box, so fill or remove them before a merge to main publishes them). `github_url` is only allowed with `repo_visibility: "public"`; private or local repos are described, never linked. Describe people only as their own public sites do.
 - Curated blog series are declared in `BLOG_SERIES` in `app.py`; that ordered slug list drives the series hub, per-post series navigation, home/blog discovery banner, and structured data.
 - Study-tool metadata and slugs live in `STUDY_TOOLS` in `app.py`; the index uses `templates/study.html`, while all four self-contained exercise pages share `templates/study_tool.html`. Keep tool pages free of external requests and preserve deterministic client-side feedback and the privacy scrub asserted in `tests/test_routes.py`.
 - `image_url` values (and inline `![...](...)` image paths in post bodies) must point at real files under `static/images/` — the templates hide missing images via `onerror` fallbacks, but don't rely on that; some posts' interactive visualizations are wired up by slug in `templates/blog_post.html`.

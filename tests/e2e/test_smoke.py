@@ -5,6 +5,7 @@ with empty responses so the suite is fast, deterministic, and offline;
 the assertions check DOM structure and that inline scripts ran cleanly,
 not pixel-perfect styling.
 """
+import json
 from pathlib import Path
 
 import pytest
@@ -27,8 +28,16 @@ def first_post_slug():
     return posts[0].stem
 
 
+def first_case_study_slug():
+    projects = json.loads((PROJECT_ROOT / 'content' / 'projects.json').read_text(encoding='utf-8'))
+    slugs = [p['slug'] for p in projects if p.get('case_study')]
+    assert slugs, 'expected case studies in content/projects.json'
+    return slugs[0]
+
+
 def smoke_paths():
-    return ['/', '/blog', f'/blog/{first_post_slug()}', '/resume']
+    return ['/', '/blog', f'/blog/{first_post_slug()}', '/resume', '/projects',
+            f'/projects/{first_case_study_slug()}']
 
 
 ASTROAI_SERIES_PATH = '/blog/series/astroai-building-for-trust'

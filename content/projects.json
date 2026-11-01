@@ -1,11 +1,558 @@
 [
   {
+    "slug": "astroai-at-most-once-publishing",
+    "title": "AstroAI: Social Publishing That Never Double-Posts",
+    "description": "An unattended social publisher for AstroAI that treats a public post as irreversible. Every post needs a sealed, append-only human approval of its exact bytes, and any send whose outcome can't be proven is held for a person instead of retried.",
+    "tags": [
+      "Python",
+      "SQLite",
+      "Buffer API",
+      "Cloudflare R2",
+      "Reliability",
+      "Testing"
+    ],
+    "status": "Active",
+    "featured": true,
+    "demo_url": "https://myastrologyinsights.com",
+    "repo_visibility": "private",
+    "related": [
+      "astroai-review-evidence",
+      "astroai-chart-engine-cutover"
+    ],
+    "case_study": {
+      "strengths": [
+        "evaluation",
+        "agents"
+      ],
+      "summary": "At-most-once delivery, immutable approvals, and safety tests that can't be broken by the calendar.",
+      "timeline": "August to October 2026",
+      "repo_note": "Private repository, so the code is described here rather than linked.",
+      "problem": [
+        "AstroAI's social pipeline generates captions and images and schedules them to public accounts through Buffer from an unattended drain job. The original publisher retried any transport exception up to four times. A connection reset or read timeout that arrives after the request was sent doesn't mean the post was rejected; it may already be live. Retrying those errors published the same post twice.",
+        "Approval had the same weakness. Caption and image review verdicts were the only gate, so an edit made after review could still reach a public account."
+      ],
+      "constraints": [
+        "A public post is the least reversible action in the system. When a send's outcome can't be proven, the right number of extra sends is zero, not one.",
+        "The publisher runs without a person watching, so a held or unproven post has to fail loudly instead of quietly.",
+        "Buffer's failure signals are often ambiguous: resets, read timeouts, 5xx responses, and bodies that can't be parsed.",
+        "Safety tests must never open a socket or read a credential.",
+        "There is one operator, so the recovery step has to be simple and safe to run more than once."
+      ],
+      "built": [
+        "An outcome classifier with four results: not_sent, delivered, refused, and ambiguous. Success counts only when the provider explicitly returns success. Anything the classifier doesn't recognize is ambiguous, and an ambiguous send is never retried automatically.",
+        "Automatic retries only for failures that provably happened before the request left the process (DNS failure, connection refused, connect timeout, proven TLS failure), capped at 4 attempts.",
+        "A write-ahead attempt ledger that is flock-guarded and written atomically. Each attempt is recorded before the request goes out, so a process killed mid-request leaves an in_flight record that blocks any second attempt. The queue row is also stamped ambiguous, which gives two independent guards that both survive a restart.",
+        "An operator reconcile command (list, then reconcile as delivered or not-delivered) with no default and no auto-resolve. Re-running it is idempotent, and it refuses to turn a recorded delivery back into a pending row.",
+        "Immutable final approvals in an append-only SQLite ledger. Each approval seals the caption text and SHA-256, the exact image bytes (or an ordered multi-image package), the destination channel, and the publish slot with its timezone. Triggers block UPDATE and DELETE. Any later edit, remap, reorder, or slot change invalidates the approval for good, and nothing can revive it.",
+        "Revalidation of the approval against current source state immediately before transport, plus staging of content-addressed snapshot copies to R2, so Buffer never receives a mutable, filename-based asset."
+      ],
+      "verification": [
+        "128 tests across three safety suites: test_publisher_at_most_once.py (38), test_final_publish_approval.py (42), and test_social_package_approval.py (48). They run against in-memory fake transports and temp files.",
+        "The publisher suite proves each rule: retry before the request, no retry after a reset or timeout, delivered, refused, ledger persistence, behavior after a restart, and that no path sends more than one request once delivery became possible.",
+        "The approval suites prove that review-only records can't schedule, that every mutation of a bound component invalidates the approval, and that an unbound legacy queue row can't reach HTTP transport.",
+        "Validation found a real gap: queue revalidation didn't check the caption-to-image mapping. After the fix, remapping an image in the same batch invalidates the approval even when the replacement image has identical bytes.",
+        "Clock independence: on 2026-08-05, hardcoded fixture dates passed their own publish slot and turned 6 approval tests and 17 publisher tests red with no code change. Instead of moving the dates further out, slots are now derived from the run's own clock. A ClockIndependenceTestCase re-runs the approval and delivery path under clocks shifted from one day to a century, and it fails statically if a hardcoded slot date is reintroduced. Both suites were also run end to end on clocks from -10 to +100 years, with no test weakened, skipped, or retried."
+      ],
+      "metrics": [
+        {
+          "value": "128",
+          "label": "tests across the three publish-safety suites"
+        },
+        {
+          "value": "0",
+          "label": "automatic retries once a send's outcome is ambiguous"
+        },
+        {
+          "value": "23",
+          "label": "tests a calendar date once broke; now clock-independent"
+        },
+        {
+          "value": "-10 to +100 yrs",
+          "label": "clock shifts both safety suites were run under"
+        }
+      ],
+      "results": [
+        "The duplicate-post failure mode is gone. An unprovable send stops the batch, prints the reconcile command, and makes the scheduled check exit non-zero until a person decides.",
+        "Scheduling authority is now a sealed record of exactly what will be posted, where, and when. It is no longer a review verdict that can drift away from the content.",
+        "The safety suites no longer have a hidden expiry date."
+      ],
+      "todos": [
+        "Number of posts published through the guarded path since August 2026.",
+        "Number of ambiguous sends held and reconciled (and how many turned out to be live), if tracked."
+      ],
+      "delivery": [
+        "Shipped as three agent-authored pull requests (#152 approvals, #155 at-most-once delivery, #158 clock independence). Each went through an automated review, lint, and CI gate before merge, and that gate's fix-up commits are part of the history.",
+        "The rules are written down for future agents in docs/publisher-delivery-outcomes.md and docs/final-publish-approval.md. For example: never widen the retry-safe class, and never resolve an ambiguous record from code."
+      ]
+    }
+  },
+  {
+    "slug": "astroai-review-evidence",
+    "title": "AstroAI: Review Evidence for Agent-Built Pull Requests",
+    "description": "Review infrastructure for a product built mostly through coding-agent PRs. An offline Playwright harness produces self-contained visual evidence pinned to the exact head commit, and a PR contract enforced in CI requires a private live preview plus a manual review plan for that specific feature.",
+    "tags": [
+      "Playwright",
+      "pytest",
+      "GitHub Actions",
+      "Tailscale",
+      "Python",
+      "Coding Agents"
+    ],
+    "status": "Active",
+    "featured": true,
+    "demo_url": "https://myastrologyinsights.com",
+    "repo_visibility": "private",
+    "related": [
+      "astroai-at-most-once-publishing",
+      "astroai-chart-engine-cutover"
+    ],
+    "case_study": {
+      "strengths": [
+        "evaluation",
+        "agents"
+      ],
+      "summary": "Proof of what shipped: exact-head evidence reports, seeded private previews, and a PR contract checked in CI.",
+      "timeline": "July to October 2026",
+      "repo_note": "Private repository, so the code is described here rather than linked.",
+      "problem": [
+        "AstroAI moves quickly because most changes arrive as pull requests written by coding agents: 171 merged PRs between July 1 and October 31, 2026. With one reviewer, reading every diff doesn't scale. A green CI badge doesn't show what a user will actually see, and screenshots pasted into a PR can easily come from an older commit.",
+        "Reviews needed two properties. The evidence had to match the exact commit under review, and reviewing a feature had to take a couple of clicks rather than a local setup session."
+      ],
+      "constraints": [
+        "Zero cost and fully offline. No real credential is used and nothing leaves localhost. OAuth, the chart API, geocoding, space weather, the LLM, and Stripe are each replaced by a local stand-in.",
+        "Previews stay private: tailnet-only Tailscale Serve (never Funnel), a server bound to 127.0.0.1, isolated synthetic data, and production credentials stripped from the environment.",
+        "A hosted CI runner can check the PR body but can't reach a private tailnet, so reachability has to be verified locally and shape in CI.",
+        "The reviewer starts from a ready state and should never have to create a chart or generate a reading just to review an unrelated change."
+      ],
+      "built": [
+        "A headless Playwright suite (26 test files) that drives the real app through real routes, browser JS, and a throwaway SQLite database. A fake chart service still computes real planetary positions offline, and the app subprocess's environment is scrubbed of real keys.",
+        "An evidence.step(...) context manager that records each step's intention, expected result, assertion outcome, and a screenshot at that exact boundary. Failures are recorded and then re-raised, never masked.",
+        "A self-contained HTML evidence report with images embedded as data URIs, an accessible lightbox dialog, and a no-JS fallback. The report embeds the head SHA it was built from, and preview routes refuse to serve a report whose SHA doesn't match the running process.",
+        "A separate feature-testing report, generated by running the PR's own numbered manual plan against the live seeded preview with a PR-specific Playwright driver.",
+        "A review-mode launcher with a seeded synthetic reviewer (sign-in via /dev-login) and JSON seed manifests for richer states: extra users, subscription tiers, friendships, and ready synastry reports.",
+        "A PR review contract with a deterministic validator, run as a GitHub Actions check. It requires the preview URL, links to both reports, the 40-character head SHA, verbatim safety statements, and a manual plan of at least two numbered steps, each with an expected visual result and an expected behavioral result."
+      ],
+      "verification": [
+        "On main at commit 71b8ad7 (2026-10-31), CI ran 2,814 unit and integration tests and 62 browser end-to-end tests, and all of them passed.",
+        "The contract validator has 59 tests. The evidence report has 11 markup tests, and the lightbox's keyboard and focus behavior is tested in a real browser over file://.",
+        "CI uploads the full evidence directory as an artifact on every run, pass or fail.",
+        "Stale-evidence guards: the metadata route reports the process's startup SHA, and both report routes refuse a missing report or one built from a different commit."
+      ],
+      "metrics": [
+        {
+          "value": "171",
+          "label": "PRs merged Jul 1 to Oct 31, 2026"
+        },
+        {
+          "value": "2,814",
+          "label": "unit and integration tests passing on main"
+        },
+        {
+          "value": "62",
+          "label": "offline browser end-to-end tests passing on main"
+        },
+        {
+          "value": "125 / 306",
+          "label": "commits on main with a Claude co-author trailer"
+        }
+      ],
+      "results": [
+        "Every open PR links to a preview of its exact head commit, a regression evidence report, and a report from running its own manual plan. CI fails the contract check when any of these is missing, stale, or a placeholder.",
+        "The whole review loop runs at zero external cost, because neither the browser suite nor the previews touch a paid API or a real credential."
+      ],
+      "todos": [
+        "Typical time to review one PR with the evidence reports, compared with before.",
+        "Count or examples of defects caught in review before merge."
+      ],
+      "delivery": [
+        "This is the system that makes agent-written code reviewable. Agents open the PR, start the seeded preview, run the manual plan, and publish the reports. A person reviews evidence pinned to the exact commit instead of trusting the agent's summary.",
+        "The contract itself lives in docs/pr-review-contract.md, so every agent session reads the same rules, including how to repair a PR body that a generator overwrote."
+      ]
+    }
+  },
+  {
+    "slug": "astroai-chart-engine-cutover",
+    "title": "AstroAI: An Evidence-Backed Chart Engine Cutover",
+    "description": "Moved AstroAI's natal chart computation from a paid hosted API to local Swiss Ephemeris math. The cutover was approved on an offline fidelity harness that checks every planet, angle, and house cusp of 15 edge-case charts against NASA JPL Horizons and independent ephemeris calls.",
+    "tags": [
+      "Python",
+      "Swiss Ephemeris",
+      "kerykeion",
+      "NASA JPL Horizons",
+      "Evaluation",
+      "Migration"
+    ],
+    "status": "Complete",
+    "featured": true,
+    "demo_url": "https://myastrologyinsights.com",
+    "repo_visibility": "private",
+    "related": [
+      "astroai-at-most-once-publishing",
+      "astroai-review-evidence"
+    ],
+    "case_study": {
+      "strengths": [
+        "evaluation"
+      ],
+      "summary": "A migration where the evidence came first: 15 edge-case charts, an independent reference, and a one-line rollback.",
+      "timeline": "July 2026",
+      "repo_note": "Private repository, so the code is described here rather than linked.",
+      "problem": [
+        "Production computed every natal chart by calling a hosted Astrologer API on RapidAPI. That meant one paid credit per call, 1 to 30 seconds per request with 429 retry loops, and a chart-wheel endpoint that never returned an SVG for the app's payload.",
+        "The same library can run locally, but a quietly wrong chart is worse than a slow one. Users can't check planetary positions themselves, so the switch needed proof, not just a passing smoke test."
+      ],
+      "constraints": [
+        "Accuracy bar of one arc-minute (60\").",
+        "No production API key was reachable from the build environment, so a live local-versus-hosted diff wasn't possible. The evidence had to come from independent ground truth.",
+        "The cutover had to be reversible with one environment variable, and the hosted engine had to stay available as a fallback.",
+        "Never return a wrong chart. Malformed output and ambiguous input both have to fail closed."
+      ],
+      "built": [
+        "A CHART_ENGINE switch (local real engine, hosted, or fake). Zodiac, house system, and perspective are passed explicitly, so a change in a library default can't make the engines diverge, and subjects are built fully offline.",
+        "A fidelity harness (experiments/chart_fidelity.py) that computes each chart locally and compares every element: planet longitudes, Ascendant and MC, all 12 Placidus cusps, and aspects. References are pinned NASA JPL Horizons longitudes plus direct Swiss Ephemeris calls whose Julian day is derived separately through zoneinfo. It writes a machine-generated evidence table and has a live mode for diffing against the hosted API when a key is available.",
+        "An edge-case chart set covering polar north (Tromsø 69.6°N), the deep south (Ushuaia, McMurdo 77.85°S), southern-hemisphere cities, historical dates (Paris 1900 and 1935), a future date (Tokyo 2075), the 2000 leap day, the date line (Kiritimati, Samoa 2011), DST gaps and overlaps, and midnight boundaries.",
+        "A fail-closed output validator for every engine: all ten planets, four angles, and twelve house cusps must be present, finite, and internally consistent before a chart can be saved or shared.",
+        "A runtime fallback to the hosted engine for real infrastructure failures. Input-validation errors such as an ambiguous DST time are re-raised before the fallback, so they are never silently guessed."
+      ],
+      "verification": [
+        "Against NASA JPL Horizons, the worst planet difference across the two baseline charts was 1.9\" (about 0.0005°), roughly 30x inside the arc-minute bar. Regression tests pin those Horizons values with a 0.02° tolerance and run offline.",
+        "The Ascendant, MC, and all 12 house cusps matched direct Swiss Ephemeris calls to 0.000\".",
+        "In 13 of the 15 edge-case charts, the worst element matched the independent reference to 0.00\". Paris 1900 differs only from the independent reference, because of historical local-mean-time and Delta-T modelling that local and hosted engines share, so local-versus-production parity holds. Both DST charts are rejected rather than guessed.",
+        "64 regression tests cover the switch: test_chart_engine.py (34), test_chart_fidelity.py (21), and test_chart_engine_validation.py (9).",
+        "The harness surfaced a migration trap: a legacy aspects API in the new library version silently drops the lunar nodes. The real engine uses the newer API instead."
+      ],
+      "metrics": [
+        {
+          "value": "1.9\"",
+          "label": "worst planet error vs NASA JPL Horizons (bar: 60\")"
+        },
+        {
+          "value": "15",
+          "label": "edge-case charts compared element by element"
+        },
+        {
+          "value": "0.000\"",
+          "label": "house cusp difference vs direct Swiss Ephemeris"
+        },
+        {
+          "value": "1-30 s → ms",
+          "label": "per-chart latency, hosted call vs local math"
+        }
+      ],
+      "results": [
+        "The cutover was approved on 2026-07-08, and local computation is now the production default. Natal charts no longer spend hosted-API credits, and one environment variable switches back if needed.",
+        "Charts gained a rendered wheel that the hosted endpoint never returned.",
+        "The remaining differences are written down. Only one is behavioral (ambiguous DST times), it fails safe with a friendly re-enter prompt, and none affect position accuracy."
+      ],
+      "todos": [
+        "Monthly hosted-API spend before the cutover, and what it is now."
+      ],
+      "delivery": [
+        "Built through agent PRs (#25 added the local engine mode, #67 added fail-closed output validation). The written fidelity report and evidence appendix were the artifacts reviewed before approving the production switch."
+      ]
+    }
+  },
+  {
+    "slug": "muse",
+    "title": "Muse: Content-Scouting Agents on a Claude Subscription",
+    "description": "A personal agent pipeline that searches YouTube and the web, reads or transcribes each candidate before recommending it, writes Markdown notes to a knowledge base, and serves a private feed. Every model call goes through the headless Claude CLI on an existing subscription, with no API key.",
+    "tags": [
+      "Python",
+      "Claude Code CLI",
+      "AI Agents",
+      "Whisper",
+      "SQLite",
+      "launchd"
+    ],
+    "status": "Active",
+    "featured": true,
+    "repo_visibility": "local",
+    "case_study": {
+      "strengths": [
+        "agents"
+      ],
+      "summary": "A scheduled multi-agent pipeline that reads before it recommends, with no API key and no public surface.",
+      "timeline": "October 2026",
+      "repo_note": "Personal tool that runs on a home machine. The code isn't published.",
+      "problem": [
+        "Good long-form videos, essays, and papers are hard to find, and recommendation feeds favor engagement over depth. The goal was a set of agents that find candidates, actually read or transcribe each one before recommending it, keep a Markdown knowledge base, and serve a short feed that works from a laptop or a phone."
+      ],
+      "constraints": [
+        "Run on an existing Claude subscription instead of metered API keys, using the claude CLI in headless mode.",
+        "Keep fixed per-call overhead small. Replacing the default system prompt and using a strict MCP config keeps it to about 2.5k tokens per call.",
+        "Run unattended under launchd, where interactive logins go stale. Scheduled runs authenticate with a long-lived token read from a private file.",
+        "YouTube's caption endpoint rate-limits bursts (HTTP 429), so caption requests are spaced 4 seconds apart, with backoff and a local Whisper fallback.",
+        "Private by design: the feed is tailnet-only and never public, and downloaded audio exists only in a temporary directory until it has been transcribed."
+      ],
+      "built": [
+        "A staged pipeline: plan, gather, judge, pick, ingest, then refresh the queue. The planner writes about 8 YouTube searches (about 20% of them exploratory). yt-dlp runs the searches and checks followed channels over RSS, and a web scout uses WebSearch and WebFetch.",
+        "A judge agent scores candidates 0 to 10 from metadata in batches of 40. A pick step keeps either videos or articles from taking more than 75% of the picks.",
+        "An ingest step that reads captions, a Whisper transcript, or the extracted article text, then asks a summarizer for a verdict and writes an Obsidian-ready note. It runs on 3 worker threads.",
+        "Each agent role has its own tool allowlist and a JSON-schema structured output (--json-schema), so every stage gets typed data back instead of free text.",
+        "A SQLite store that records every candidate, including rejected ones, so nothing is judged twice. A small standard-library feed server has thumbs-up, thumbs-down, and done buttons, and those ratings feed into the next run's prompts.",
+        "launchd jobs run the pipeline daily at 05:30 and keep the feed always on. A deploy script syncs the code, upgrades dependencies, runs the tests, and reloads the jobs."
+      ],
+      "verification": [
+        "7 unit tests cover the deterministic parts: caption VTT parsing and dedupe, paragraph grouping, video-ID parsing, URL dedupe, the one-retry rule, slugs, and durations. The deploy script runs them before reloading the scheduled jobs.",
+        "Two quality gates: a judge score before reading and a verdict after reading, both with a threshold of 7.",
+        "Production was verified end to end under launchd on 2026-10-31, including a run that queued two items through the Whisper fallback."
+      ],
+      "metrics": [
+        {
+          "value": "66",
+          "label": "candidates gathered on the first run (8 read, 7 queued)"
+        },
+        {
+          "value": "~2.5k",
+          "label": "tokens of fixed overhead per model call"
+        },
+        {
+          "value": "7",
+          "label": "items queued by the verified scheduled production run"
+        },
+        {
+          "value": "Same day",
+          "label": "first run, first commit, and verified scheduled production"
+        }
+      ],
+      "results": [
+        "Running daily on a home machine with no API key and no public endpoint. The production queue held about 24 read-and-summarized items after its first day.",
+        "Every recommendation comes with a note written from the full transcript or article, not from a title and thumbnail."
+      ],
+      "todos": [
+        "Share of recommendations rated thumbs-up after a few weeks of use.",
+        "An offline eval set for the judge and verdict gates; the thresholds are LLM judgments that haven't been measured yet."
+      ],
+      "delivery": [
+        "Built with Claude Code in a single session on 2026-10-31. All 4 commits carry a Claude co-author trailer, and v1 landed as 22 files and 1,615 lines.",
+        "The repo's agent notes record its rules and gotchas, such as the caption rate limit, no persistent downloads, and tailnet-only access, so later agent sessions don't relearn them."
+      ]
+    }
+  },
+  {
+    "slug": "jtworldteacher",
+    "title": "J.T. Worldteacher: X Spaces to Podcast Pipeline",
+    "description": "A pipeline and Astro site that turn J.T. Worldteacher's recorded X Spaces into a published podcast: download, local Whisper transcription, agent-written show notes, Cloudflare R2 audio hosting, and a validated RSS feed deployed to GitHub Pages.",
+    "tags": [
+      "Astro",
+      "TypeScript",
+      "Whisper",
+      "RSS",
+      "Cloudflare R2",
+      "GitHub Actions",
+      "Claude Code"
+    ],
+    "status": "Active",
+    "featured": true,
+    "github_url": "https://github.com/purple-phoenix/jtworldteacher",
+    "demo_url": "https://jtworldteacher.com",
+    "image_url": "/static/images/jtworldteacher-feature.png",
+    "repo_visibility": "public",
+    "case_study": {
+      "strengths": [
+        "agents",
+        "evaluation"
+      ],
+      "summary": "From a live X Space to a listed podcast episode with show notes, using local tools and a free media tier.",
+      "timeline": "May to October 2026",
+      "problem": [
+        "J.T.'s \"Astrology & Simulation Theory\" show happens as live X Spaces, which are hard to find or replay once they're over. The goal was to turn each recorded Space into a permanent podcast episode with full show notes, published to a standard RSS feed, with as little manual work per episode as possible."
+      ],
+      "constraints": [
+        "GitHub Pages can't serve large media, so audio lives on Cloudflare R2 behind its own media subdomain. That lets the storage host change later without changing any episode URL.",
+        "Apple Podcasts requirements: 3000x3000 cover art under 500 KB, an exact byte count for every audio file, the audio/mp4 type, and audio and feed URLs that never change.",
+        "A Space can only be downloaded if the host recorded it.",
+        "Episodes are long. The longest runs about 7.2 hours, and the show-notes step is skipped for transcripts over 500 KB."
+      ],
+      "built": [
+        "Download with yt-dlp, which also writes a catalog stub for each Space. A parallel pipeline runs 4 downloads at once while transcription runs one file at a time.",
+        "Local transcription with whisper.cpp (large-v3-turbo on Apple Silicon) after converting to 16 kHz mono, with no transcription API. ffmpeg trims hold music and dead air, and the caption timings are shifted to match.",
+        "A Claude Code skill (add-episode) that dispatches an agent to write show notes from the transcript.",
+        "Episode pages in an Astro content collection checked by a Zod schema, with byte counts and durations filled in by ffprobe. Audio is uploaded to R2 with rclone and served as audio/mp4.",
+        "An RSS endpoint with the iTunes, content, Atom, and Podcasting 2.0 namespaces, including podcast:guid, podcast:locked, and full show notes in content:encoded.",
+        "A GitHub Actions workflow that builds the site and deploys it to GitHub Pages on every push."
+      ],
+      "verification": [
+        "npm run build validates every episode against the schema and regenerates the feed, and CI runs the same build before deploying.",
+        "The feed was checked with the podba.se validator. Its only failure, byte-range support, was confirmed as a false negative: a curl range request to R2 returns 206 Partial Content.",
+        "Release checklist: confirm the public audio URL returns 200 with the right Content-Type and Content-Length and a 206 for a range request, and don't push if that check fails.",
+        "A timezone regression test for episode publish dates, and 28 Python tests for a separate distribution-kit script."
+      ],
+      "metrics": [
+        {
+          "value": "24",
+          "label": "episodes published"
+        },
+        {
+          "value": "~66 h",
+          "label": "of audio transcribed and hosted"
+        },
+        {
+          "value": "~1 min",
+          "label": "from git push to live episode in the feed"
+        },
+        {
+          "value": "15 / 24",
+          "label": "commits with a Claude co-author trailer"
+        }
+      ],
+      "results": [
+        "24 episodes, about 66 hours of audio, are live at jtworldteacher.com with a validated RSS feed.",
+        "Adding an episode is a single skill run plus a push. The site and feed update in about a minute.",
+        "Six earlier episodes still carry placeholder show notes and are next in line for the notes step."
+      ],
+      "todos": [
+        "Listener or download numbers, and which podcast directories list the feed."
+      ],
+      "delivery": [
+        "The workflow is packaged as a Claude Code skill, so one agent run takes a Space from URL to transcript, notes, upload, and a ready-to-push episode, stopping at the audio check before anything goes live."
+      ]
+    }
+  },
+  {
+    "slug": "thrive-beyond-coaching",
+    "title": "Thrive Beyond Coaching: Capped Installments with Stripe",
+    "description": "Online payments for a small coaching practice: server-created Stripe Checkout with prices locked to a server catalog, plus a 12-week program payable monthly whose subscription automatically stops after exactly three charges.",
+    "tags": [
+      "Next.js",
+      "TypeScript",
+      "Stripe",
+      "Vitest",
+      "Vercel",
+      "Payments"
+    ],
+    "status": "Active",
+    "featured": true,
+    "demo_url": "https://thrive-beyond-coaching.com",
+    "image_url": "/static/images/thrive-beyond-coaching-feature.png",
+    "repo_visibility": "private",
+    "case_study": {
+      "strengths": [
+        "agents",
+        "evaluation"
+      ],
+      "summary": "A Stripe subscription that stops itself after exactly three payments, with no database.",
+      "timeline": "July 2026",
+      "repo_note": "Private repository, so the code is described here rather than linked.",
+      "problem": [
+        "Thrive Beyond Coaching is a small practice that coaches cancer survivors and caregivers. Its 12-week program is offered as $900 paid in full or $300 a month for three months. A plain Stripe monthly subscription keeps charging until someone remembers to cancel it, and for a one-person business that is a real risk of overcharging a client."
+      ],
+      "constraints": [
+        "No database and no backend beyond two Next.js API routes on Vercel. Sale notifications go to email through Formspree.",
+        "The person running the business shouldn't need to do anything in the Stripe dashboard after each sale.",
+        "Prices must come from the server, never from the browser.",
+        "Stripe webhooks can be retried or delivered more than once, so capping has to be idempotent, and a failure has to be retried rather than lost."
+      ],
+      "built": [
+        "Checkout Sessions created on the server (no static Payment Links), with a pinned Stripe API version and a server-side price catalog: four fixed-price offerings, a $50 to $100 sliding scale, and donations of at least $1.",
+        "The monthly option creates a subscription tagged as a 3-cycle installment plan.",
+        "A signature-verified webhook. On checkout.session.completed, it converts the subscription into a subscription schedule with a single 3-month phase and end_behavior set to cancel.",
+        "Idempotent capping. A schedule counts as capped only if it is set to cancel and has a bounded phase. A schedule that exists but isn't capped yet is repaired in place, and a failed cap returns 500 so Stripe retries the event.",
+        "The Stripe client is passed in, so the capping logic is a pure, testable unit."
+      ],
+      "verification": [
+        "15 Vitest cases: 8 for checkout (including \"overrides tampered subscription price and mode with catalog values\" and \"rejects arbitrary client-priced payments\") and 7 for the cap (including \"repairs an existing-but-uncapped schedule in place\" and \"skips an already-capped subscription (idempotent no-op)\").",
+        "An automated agent review gate caught two real bugs before release. The checkout trusted prices sent by the browser, which was fixed by locking checkout to the catalog. The idempotency check also didn't detect a schedule's real cap state, which was fixed by checking end_behavior and a bounded phase.",
+        "Known gap: Stripe event IDs aren't recorded, so a duplicated webhook can send a duplicate notification email. The cap itself is unaffected."
+      ],
+      "metrics": [
+        {
+          "value": "3",
+          "label": "charges, then the subscription cancels itself"
+        },
+        {
+          "value": "15",
+          "label": "unit tests across checkout and the installment cap"
+        },
+        {
+          "value": "2",
+          "label": "real bugs caught by agent review before release"
+        },
+        {
+          "value": "~2 h",
+          "label": "from first checkout commit to reviewed, documented release"
+        }
+      ],
+      "results": [
+        "Every offering on the public shop page goes through server-priced Stripe Checkout, and the monthly plan ends itself after the third payment without anyone touching Stripe.",
+        "The whole checkout and installment change shipped on the morning of 2026-07-11, from the first commit at 05:36 to the final docs sync at 07:24."
+      ],
+      "todos": [
+        "Number of clients who have used checkout or the installment plan (only if the client is comfortable sharing it).",
+        "How the full 3-charge cycle was confirmed against Stripe test mode, such as a test clock run. The repo doesn't document it."
+      ],
+      "delivery": [
+        "Built with coding agents and run through the no-mistakes pipeline: automated review, lint, CI, and docs steps. Its review commits are where both bugs above were caught and fixed, before anything reached the live site."
+      ]
+    }
+  },
+  {
+    "slug": "astrology-insights",
+    "title": "Astrology Insights",
+    "description": "The live product behind three of the case studies above: a web application for astrological birth charts with AI-written interpretations, chat, and synastry reports. Built with Flask and PostgreSQL, with charts computed locally using Swiss Ephemeris.",
+    "tags": [
+      "Python",
+      "Flask",
+      "PostgreSQL",
+      "Swiss Ephemeris",
+      "Stripe",
+      "OAuth",
+      "Playwright"
+    ],
+    "status": "Active",
+    "featured": false,
+    "demo_url": "https://myastrologyinsights.com",
+    "image_url": "/static/images/astrology-insights-feature.png",
+    "highlights": [
+      "Natal charts computed locally with Swiss Ephemeris (see the chart engine cutover case study)",
+      "AI-written chart interpretations and an interactive chat about each chart",
+      "Synastry reports for relationship analysis",
+      "Google OAuth sign-in and Stripe payments for premium features",
+      "Every PR reviewed against an exact-head preview and visual evidence report",
+      "A private social content studio with immutable publish approvals"
+    ],
+    "repo_visibility": "private",
+    "related": [
+      "astroai-review-evidence",
+      "astroai-at-most-once-publishing",
+      "astroai-chart-engine-cutover"
+    ]
+  },
+  {
+    "slug": "ai-agent-orchestration",
+    "title": "AI Agent Orchestration",
+    "description": "Building and orchestrating teams of AI coding agents using Claude Code, OpenClaw, Codex, and Paperclip. Using agents to autonomously build features, write content, fix bugs, and run overnight — across multiple live projects simultaneously. Learning what works, what does not, and how to get the most out of AI-assisted development in real production environments.",
+    "tags": [
+      "Claude Code",
+      "OpenClaw",
+      "Codex",
+      "Paperclip",
+      "AI Agents",
+      "Automation"
+    ],
+    "status": "Active",
+    "featured": false,
+    "blog_url": "/blog/ai-coding-agents-real-projects",
+    "highlights": [
+      "Orchestrated 5+ parallel coding agents across 3 projects in a single night",
+      "Built Claude → Codex fallback chains for resilient overnight autonomous work",
+      "Integrated Paperclip for multi-project org chart and task management"
+    ]
+  },
+  {
     "slug": "log-anomaly-detection",
     "title": "Embedded Log Anomaly Detection",
     "description": "A machine learning pipeline for prioritizing anomalous embedded-system test logs using Sentence Transformer embeddings and cosine similarity. Built for a CS 589 project, it compares several BERT-based encoders, normalizes timestamp-heavy data, and fine-tunes all-MiniLM-L6-v2 to separate abnormal and normal test runs without exposing proprietary log content.",
-    "tags": ["Python", "Sentence Transformers", "BERT", "Machine Learning", "Anomaly Detection", "NLP"],
+    "tags": [
+      "Python",
+      "Sentence Transformers",
+      "BERT",
+      "Machine Learning",
+      "Anomaly Detection",
+      "NLP"
+    ],
     "status": "Complete",
-    "featured": true,
+    "featured": false,
     "blog_url": "/blog/embedded-system-log-anomaly-detection",
     "image_url": "/static/images/log-anomaly-custom-model-training.png",
     "highlights": [
@@ -22,10 +569,19 @@
     "slug": "lstm-stock-prediction",
     "title": "LSTM Stock Price Prediction",
     "description": "A neural network-based stock price prediction system using Long Short-Term Memory (LSTM) networks. Built as a final project for CS 682 Neural Networks course at UMass Amherst. Implements a multi-layer LSTM architecture with dropout regularization, layer normalization, and early stopping for predicting daily stock closing prices.",
-    "tags": ["Python", "TensorFlow", "Keras", "LSTM", "Neural Networks", "Machine Learning", "Time Series"],
+    "tags": [
+      "Python",
+      "TensorFlow",
+      "Keras",
+      "LSTM",
+      "Neural Networks",
+      "Machine Learning",
+      "Time Series"
+    ],
     "status": "Complete",
-    "featured": true,
+    "featured": false,
     "github_url": "https://github.com/purple-phoenix/lstm-stock-trader",
+    "repo_visibility": "public",
     "paper_url": "https://github.com/purple-phoenix/lstm-stock-trader/blob/main/Final_Project_Paper.pdf",
     "image_url": "/static/images/lstm-stock-prediction-feature.png",
     "highlights": [
@@ -40,52 +596,19 @@
     ]
   },
   {
-    "slug": "astrology-insights",
-    "title": "Astrology Insights",
-    "description": "A full-featured web application for generating detailed astrological birth charts with AI-powered interpretations, interactive chat, and synastry analysis. Built with Flask, PostgreSQL, and integrated with OpenAI/Anthropic for personalized chart readings.",
-    "tags": ["Python", "Flask", "PostgreSQL", "OpenAI", "Stripe", "OAuth", "API Integration"],
-    "status": "Active",
-    "featured": true,
-    "demo_url": "https://myastrologyinsights.com",
-    "image_url": "/static/images/astrology-insights-feature.png",
-    "highlights": [
-      "Interactive birth chart generation with Kerykeion API",
-      "AI-powered chart interpretations using GPT-4/Claude",
-      "Interactive chat for asking questions about charts",
-      "Synastry reports for relationship analysis",
-      "Google OAuth authentication",
-      "Stripe payment integration for premium features",
-      "PostgreSQL database for chart storage and chat history",
-      "Admin dashboard for user management"
-    ]
-  },
-  {
-    "slug": "jtworldteacher",
-    "title": "J.T. Worldteacher",
-    "description": "A podcast and publishing platform for J.T. Worldteacher's \"Astrology & Simulation Theory\" show. Built with Astro and deployed to GitHub Pages, with a PSP-1 compliant RSS feed, Cloudflare R2 audio hosting, and a workflow that turns recorded X Spaces into fully documented podcast episodes.",
-    "tags": ["Astro", "TypeScript", "RSS", "Cloudflare R2", "GitHub Pages", "Podcasting", "Web Development"],
-    "status": "Active",
-    "featured": true,
-    "github_url": "https://github.com/purple-phoenix/jtworldteacher",
-    "demo_url": "https://jtworldteacher.com",
-    "image_url": "/static/images/jtworldteacher-feature.png",
-    "highlights": [
-      "Astro 5 static site with a custom editorial design and dark theme",
-      "Podcast RSS feed with iTunes, atom, and podcast namespaces (PSP-1 compliant)",
-      "Audio hosted on Cloudflare R2 behind a custom media subdomain",
-      "Markdown content collection for 20+ episodes with full show notes",
-      "Automated GitHub Actions deployment to GitHub Pages with custom domain and HTTPS",
-      "Repeatable X Space to podcast publishing workflow with rclone uploads"
-    ]
-  },
-  {
     "slug": "mattmccarthy-dev",
     "title": "mattmccarthy.dev",
     "description": "A modern, responsive personal website built with Flask and Tailwind CSS featuring blog, projects showcase, and interactive resume.",
-    "tags": ["Python", "Flask", "Tailwind CSS", "Web Development"],
+    "tags": [
+      "Python",
+      "Flask",
+      "Tailwind CSS",
+      "Web Development"
+    ],
     "status": "Active",
-    "featured": true,
+    "featured": false,
     "github_url": "https://github.com/purple-phoenix/mtmccarthy",
+    "repo_visibility": "public",
     "demo_url": "https://mattmccarthy.dev",
     "image_url": "/static/images/personal-website-feature.png",
     "highlights": [
@@ -93,38 +616,6 @@
       "Responsive design with Tailwind CSS",
       "Interactive resume with timeline view",
       "Projects showcase with filtering"
-    ]
-  },
-  {
-    "slug": "ai-agent-orchestration",
-    "title": "AI Agent Orchestration",
-    "description": "Building and orchestrating teams of AI coding agents using Claude Code, OpenClaw, Codex, and Paperclip. Using agents to autonomously build features, write content, fix bugs, and run overnight — across multiple live projects simultaneously. Learning what works, what does not, and how to get the most out of AI-assisted development in real production environments.",
-    "tags": ["Claude Code", "OpenClaw", "Codex", "Paperclip", "AI Agents", "Automation"],
-    "status": "Active",
-    "featured": true,
-    "blog_url": "/blog/ai-coding-agents-real-projects",
-    "highlights": [
-      "Orchestrated 5+ parallel coding agents across 3 projects in a single night",
-      "Built Claude → Codex fallback chains for resilient overnight autonomous work",
-      "Integrated Paperclip for multi-project org chart and task management"
-    ]
-  },
-  {
-    "slug": "thrive-beyond-coaching",
-    "title": "Thrive Beyond Coaching",
-    "description": "A website built for Kelly McCarthy — breast cancer survivor, educator, and certified life coach. Kelly brings 8 years of teaching experience and a Masters in Education to her coaching practice, currently working at Boston University supporting students through mental health re-integration. Her niche: cancer survivors and caregivers navigating life after diagnosis. Built with Next.js, TypeScript, and Tailwind CSS.",
-    "tags": ["Next.js", "TypeScript", "React", "Tailwind CSS", "Web Development"],
-    "status": "Active",
-    "featured": true,
-    "demo_url": "https://thrivebeyondcoaching.vercel.app",
-    "image_url": "/static/images/thrive-beyond-coaching-feature.png",
-    "highlights": [
-      "Next.js 14 with App Router and TypeScript",
-      "Responsive design with warm, supportive earthy/nature theme",
-      "Multiple pages: Home, About, Offerings, Shop, and Contact",
-      "Contact form integration with Formspree",
-      "Playwright testing suite for quality assurance",
-      "Built for a coach specializing in cancer survivors and caregivers"
     ]
   }
 ]
