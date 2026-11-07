@@ -112,6 +112,16 @@ def test_case_study_without_todos_has_no_todo_box(client, projects_file):
     (lambda p: p.update(repo_visibility='secret'), 'repo_visibility'),
     (lambda p: p.update(related=['missing']), 'related'),
     (lambda p: p['case_study'].update(related=[]), 'top level'),
+    (lambda p: p['case_study'].update(lessons=[]), 'case_study.lessons'),
+    (lambda p: p['case_study'].update(diagram=[{'label': 'A', 'detail': 'B'}]), 'design section'),
+    (lambda p: p['case_study'].update(tables={'results': {'columns': ['A', 'B'], 'rows': [['1']]}}),
+     'tables.results'),
+    (lambda p: p['case_study'].update(tables={'lessons': {'columns': ['A'], 'rows': [['1']]}}),
+     'tables.lessons'),
+    (lambda p: p['case_study'].update(review_todos=[{'section': 'results', 'note': 'a -- b'}]),
+     'review_todos'),
+    (lambda p: p['case_study'].update(review_todos=[{'section': 'nowhere', 'note': 'x'}]),
+     'review_todos'),
 ])
 def test_invalid_case_study_fails_loudly(projects_file, mutate, message):
     study = copy.deepcopy(VALID_STUDY)
@@ -137,3 +147,36 @@ def test_related_projects_render(client, projects_file):
     text = page_text(client, '/projects/study')
     assert 'Related case studies' in text
     assert '/projects/other' in text
+
+
+def test_optional_sections_diagram_and_tables_render(client, projects_file):
+    study = copy.deepcopy(VALID_STUDY)
+    study['case_study'].update(
+        design=['How the parts fit.'],
+        diagram=[{'label': 'Record', 'detail': 'Call the model once.', 'lane': 'Model call'},
+                 {'label': 'Check', 'detail': 'Compare with truth.', 'lane': 'Runs in CI'}],
+        diagram_caption='Two steps.',
+        checks=['Only hard failures block.'],
+        calibration=['Anchors first.'],
+        stability=['Five runs.'],
+        lessons=['Say the recall limit.'],
+        tables={'checks': {'columns': ['Check', 'Catches'], 'rows': [['Grounding', 'Invented facts']],
+                           'caption': 'Every check.'}},
+    )
+    projects_file([study])
+    text = page_text(client, '/projects/study')
+    for heading in ('Design', 'What each check catches', 'Judge calibration', 'Stability results', 'Lessons'):
+        assert heading in text
+    assert 'data-diagram' in text
+    for fragment in ('Call the model once.', 'Runs in CI', 'Two steps.', 'Invented facts', 'Every check.'):
+        assert fragment in text
+
+
+def test_review_todos_render_only_as_html_comments(client, projects_file):
+    study = copy.deepcopy(VALID_STUDY)
+    del study['case_study']['todos']
+    study['case_study']['review_todos'] = [{'section': 'problem', 'note': 'Check this is OK to publish.'}]
+    projects_file([study])
+    text = page_text(client, '/projects/study')
+    assert '<!-- TODO (Matt): Check this is OK to publish. -->' in text
+    assert 'data-todo' not in text

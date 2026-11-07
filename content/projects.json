@@ -1,5 +1,327 @@
 [
   {
+    "slug": "astroai-offline-eval-suite",
+    "title": "Building an Offline Eval Suite for an LLM Product",
+    "description": "An offline evaluation suite for the AI-written readings in AstroAI. Fixtures from a real chart engine give every reading a ground truth, deterministic checks catch invented chart facts and unsafe advice, a calibrated LLM judge scores quality, and a repeat-run score measures how much the content moves between generations. The first baseline scored 90 readings with zero paid API calls.",
+    "tags": [
+      "LLM Evaluation",
+      "LLM-as-Judge",
+      "pytest",
+      "Python",
+      "Claude",
+      "Swiss Ephemeris"
+    ],
+    "status": "Active",
+    "featured": true,
+    "demo_url": "https://myastrologyinsights.com",
+    "repo_visibility": "private",
+    "related": [
+      "astroai-review-evidence",
+      "astroai-chart-engine-cutover"
+    ],
+    "case_study": {
+      "strengths": [
+        "evaluation"
+      ],
+      "summary": "Ground truth from a real chart engine, deterministic grounding and safety checks in CI, a calibrated LLM judge, and a stability score for repeat runs.",
+      "timeline": "October to November 2026",
+      "repo_note": "Private repository, so the code is described here rather than linked. Every number on this page comes from the suite's first baseline report.",
+      "metrics": [
+        {
+          "value": "90",
+          "label": "readings scored, zero paid API calls"
+        },
+        {
+          "value": "0",
+          "label": "hard-check failures in the first baseline"
+        },
+        {
+          "value": "71%",
+          "label": "judge scores inside the expected band on 6 calibration readings"
+        },
+        {
+          "value": "10 to 60%",
+          "label": "cited chart features shared across 5 repeat runs"
+        }
+      ],
+      "problem": [
+        "AstroAI writes personalized astrology readings with an LLM: natal readings, compatibility readings for two people, transit readings, and chat replies. Each reading is about one specific chart, so a reading can sound good and still be wrong. It can claim an aspect the chart doesn't have, slip into medical or financial advice, or be generic text that would fit anyone.",
+        "Prompt changes were being judged by reading a handful of outputs. That can't answer the two questions that matter: did the model say anything that isn't in the chart, and is the reading actually about this person? I wanted a suite that answers both on a fixed set, cheaply enough that it gets re-run on every prompt change."
+      ],
+      "constraints": [
+        "Zero spend. Generation and judging run through the Claude CLI on a subscription. There is no paid-API provider in the harness at all, and paid keys are scrubbed from the process before the app is even imported.",
+        "Evaluate the prompt as shipped. Readings come from the app's own prompt assembly and send functions with only the provider swapped, so the suite can't drift from production prompts the way a re-implementation would.",
+        "The CI gate makes no model calls. It runs on committed fixtures and recorded readings, so it is fast, free and deterministic.",
+        "Grounding is checked mechanically, never by the judge. LLM judges are poor at exhaustive cross-referencing, and the chart data is right there to check against."
+      ],
+      "design": [
+        "The suite splits the slow, model-dependent steps (recording readings and judging them) from the fast, deterministic ones (checking claims against ground truth). Recordings are committed, so CI can enforce the deterministic layer on every push without calling a model, and the model steps only re-run when a prompt changes."
+      ],
+      "diagram": [
+        {
+          "label": "Fixed set",
+          "detail": "24 charts, 9 pairs, 8 transit events and 13 chat cases, picked for failure coverage.",
+          "lane": "Offline"
+        },
+        {
+          "label": "Ground truth",
+          "detail": "Positions, houses and the full aspect list from Swiss Ephemeris, committed as fixtures.",
+          "lane": "Offline"
+        },
+        {
+          "label": "Record readings",
+          "detail": "The app's own prompt code, with the provider swapped to the Claude CLI.",
+          "lane": "Model call"
+        },
+        {
+          "label": "Deterministic checks",
+          "detail": "Grounding, safety, prompt contract and per-surface rules, with a failure budget.",
+          "lane": "Runs in CI"
+        },
+        {
+          "label": "LLM judge",
+          "detail": "A rubric scored by a different model, calibrated first on 6 anchor readings.",
+          "lane": "Model call"
+        },
+        {
+          "label": "Stability and report",
+          "detail": "Repeat runs scored for overlap, and every result rendered into a markdown baseline.",
+          "lane": "Offline"
+        }
+      ],
+      "diagram_caption": "Green steps are deterministic and free to re-run; amber steps call a model and are recorded once per prompt version.",
+      "built": [
+        "A fixed set chosen for failure coverage rather than realism, with tags the report groups by: high latitudes (Tromsø, Reykjavík, Ushuaia), a Sun on a sign cusp, an unknown birth time, six of eight planets retrograde, seven-planet stelliums, a leap day, dateline and half-hour time zones, and a chart paired with itself.",
+        "A bridge into the app that computes every chart with the real engine and keeps a ground-truth record per chart: each point's sign, degree, house and retrograde flag, the full engine aspect list, and the 15 aspects the prompt actually shows the model.",
+        "A claim extractor tuned for precision over recall. It resolves placement, aspect, house, degree and retrograde claims, records negated mentions separately, and never guesses who a third-person pronoun refers to. Each aspect claim is classified as listed (in the prompt), engine (real, but not shown to the model), lenient (near-miss geometry) or invented (geometrically false).",
+        "Deterministic checks written as pure functions of the text and its input, each with a severity: hard (correctness or safety), soft (prompt contract or style) or info (measured only).",
+        "An LLM judge that scores specificity, consistency, tone and actionability from 1 to 5 against written anchors, sees the same chart data the writer saw, and returns strict JSON with its strongest and weakest quoted sentences. The judge runs on Claude Opus 5.5 while readings are written by Claude Fable 5.1, to reduce self-preference.",
+        "A repeat-run stability score, and a report generator that renders the result files into a markdown baseline with hand-written findings on top.",
+        "A blind A/B review page for comparing two prompt arms, a pairwise judge that rates each pair in both orders to cancel position bias, and an agreement report with an exact sign test. A new prompt ships only with zero hard failures and a significant blind preference (18 of 24 pairs)."
+      ],
+      "checks": [
+        "Only hard failures block. Soft checks describe the prompt contract and show drift over time, and info checks surface product gaps that no prompt change can fix.",
+        "CI enforces a per-surface hard-failure budget on the recorded readings, with zero tolerance for advice-safety and chart-grounding failures."
+      ],
+      "verification": [
+        "Unit tests for every extractor and check, run on hand-built sentences.",
+        "Fixture tests rebuild the committed inputs through the real engine (which pins Swiss Ephemeris output), confirm each planted bait aspect really is absent from its chart, and confirm every recorded reading is checkable.",
+        "The hard-failure budget is enforced in pytest on every CI run with no model call, so a prompt regression shows up the moment someone re-records readings.",
+        "Two live smoke tests (one real generation, one judge call) sit behind a live_eval pytest marker that is skipped unless an environment variable is set. CI never sets it.",
+        "Every recording carries the served model, the app commit and a hash of the exact assembled prompt. Judgments are joined on that full identity, so a regenerated reading can't inherit an old score."
+      ],
+      "calibration": [
+        "Before any judge number is trusted, the judge scores six hand-written anchor readings for one chart, each with an expected score band per dimension: pure Barnum text, a strong grounded reading, a contradictory reading that also misstates the data, a jargon dump, a mystical fortune-cookie reading, and a deliberately middling one.",
+        "71% of the (reading, dimension) scores landed inside the expected band, with a mean absolute error of 0.83 from the band centre, and every deliberately good reading outscored every deliberately bad one.",
+        "It also showed a halo effect. The Barnum, jargon-dump and mystical readings were all marked down on consistency (2, against an expected 3 to 5), which they didn't deserve. A reading that is bad for one reason gets scored as bad on every dimension.",
+        "On the real readings the judge is compressed: 80 of 90 overall scores were exactly 4. So a difference of less than half a point between prompt arms is not treated as signal."
+      ],
+      "stability": [
+        "Three charts, five independent generations each, same chart and same prompt. The score combines cited-feature overlap (mean pairwise Jaccard of the placements and aspects the extractor found), overlap of top content words, length variation and agreement of check outcomes, weighted 0.4, 0.2, 0.2 and 0.2. Every component is reported, so the weighting can change without regenerating anything.",
+        "The voice is stable and the content isn't. Length varied by about 3% and every check agreed on every run, but runs shared only 10% to 60% of their cited chart features. For the Austin chart, no feature was cited in all five runs.",
+        "The judge's standard deviation across those runs was 0.00. It can't see the run-to-run variation that feature overlap shows clearly, which is one more reason a single judge score can't stand in for quality."
+      ],
+      "tables": {
+        "checks": {
+          "columns": [
+            "Check",
+            "What it catches",
+            "Severity"
+          ],
+          "rows": [
+            [
+              "Placements and houses",
+              "Claims like \"Sun in Leo\", \"Virgo rising\" or a house placement that don't match the computed chart",
+              "Hard"
+            ],
+            [
+              "Invented aspects",
+              "An aspect between two bodies that the geometry says isn't there",
+              "Hard"
+            ],
+            [
+              "Aspects outside the supplied list",
+              "Real aspects the prompt never showed the model, which it was told not to use",
+              "Soft"
+            ],
+            [
+              "Retrograde claims",
+              "Retrograde claims that are false, or that the prompt never supported (the natal prompt carries no retrograde data)",
+              "Hard if false, soft if unsupported"
+            ],
+            [
+              "Advice safety",
+              "Medical, financial or legal advice, told apart from referral language like \"see a doctor\"",
+              "Hard"
+            ],
+            [
+              "Catastrophizing",
+              "Doom language, which the transit prompt forbids",
+              "Hard on transits, soft elsewhere"
+            ],
+            [
+              "Platonic guardrail",
+              "Romance vocabulary in a friend, family or colleague compatibility reading",
+              "Hard"
+            ],
+            [
+              "Out-of-orb honesty",
+              "A transit reading that claims a peak when the contact is out of orb",
+              "Hard"
+            ],
+            [
+              "Chat bait and boundaries",
+              "Affirming a planted aspect the chart doesn't have, writing code for an off-topic request, sky claims beyond the supplied current-sky block, or a missing medical referral",
+              "Hard"
+            ],
+            [
+              "Prompt contract",
+              "Length outside the word band, lists or headers, degree figures, not addressing the reader by name, no closing questions, too little hedging, too much jargon",
+              "Soft"
+            ],
+            [
+              "Unknown birth time",
+              "A reading that leans on the Ascendant or houses when the birth time is only a noon placeholder",
+              "Info"
+            ]
+          ]
+        },
+        "calibration": {
+          "columns": [
+            "Anchor reading",
+            "Specificity",
+            "Consistency",
+            "Tone",
+            "Actionability",
+            "Overall"
+          ],
+          "rows": [
+            [
+              "Pure Barnum text",
+              "1 ✓ (1)",
+              "2 ✗ (3-5)",
+              "2 ✓ (2-4)",
+              "1 ✓ (1-2)",
+              "1 (1-2)"
+            ],
+            [
+              "Strong, grounded",
+              "4 ✓ (4-5)",
+              "4 ✓ (4-5)",
+              "4 ✓ (4-5)",
+              "4 ✓ (4-5)",
+              "4 (4-5)"
+            ],
+            [
+              "Contradictory, misstates data",
+              "1 ✗ (3-4)",
+              "1 ✓ (1-2)",
+              "2 ✗ (3-4)",
+              "1 ✗ (2-3)",
+              "1 (2-3)"
+            ],
+            [
+              "Jargon dump",
+              "2 ✗ (3-4)",
+              "2 ✗ (3-5)",
+              "1 ✓ (1-2)",
+              "1 ✓ (1-2)",
+              "1 (1-2)"
+            ],
+            [
+              "Mystical, vague",
+              "1 ✓ (1-2)",
+              "2 ✗ (3-5)",
+              "1 ✓ (1-2)",
+              "1 ✓ (1-2)",
+              "1 (1-2)"
+            ],
+            [
+              "Deliberately middling",
+              "3 ✓ (2-4)",
+              "4 ✓ (3-5)",
+              "4 ✓ (3-4)",
+              "3 ✓ (2-4)",
+              "3 (3)"
+            ]
+          ],
+          "caption": "Judge score, a tick or cross for inside or outside the expected band, then the band. The 71% counts the four dimensions; Overall is shown for reference.",
+          "nowrap": true
+        },
+        "stability": {
+          "columns": [
+            "Chart",
+            "Stability",
+            "Feature overlap",
+            "Theme overlap",
+            "Length CV"
+          ],
+          "rows": [
+            [
+              "Austin 1994",
+              "0.456",
+              "0.1",
+              "0.187",
+              "0.031"
+            ],
+            [
+              "Rome 1962 (stellium)",
+              "0.578",
+              "0.4",
+              "0.199",
+              "0.033"
+            ],
+            [
+              "Tromsø 1985 (polar)",
+              "0.649",
+              "0.6",
+              "0.14",
+              "0.028"
+            ]
+          ],
+          "caption": "Five generations per chart on the newer natal prompt. Overlaps are mean pairwise Jaccard; length CV is the coefficient of variation of word count. Check agreement was 1.0 and judge sd 0.00 on all three charts.",
+          "nowrap": true
+        }
+      },
+      "results": [
+        "The first baseline (November 2026) scored 90 readings: 24 charts on each of two live natal prompt arms, 12 extra stability runs, 9 compatibility pairs, 8 transit events and 13 chat cases. Every reading passed every hard check, and the whole run made zero paid API calls.",
+        "That zero comes with a caveat the report states up front. The newer prompt names very little astrology: across 60 natal readings the extractor resolved 0.23 aspect claims and 1.13 placement claims per reading, and 47 of 60 contained no resolvable aspect claim at all. So \"zero invented aspects\" means nothing the extractor could resolve was false. The stronger grounding evidence is the chat bait cases, where the model has to engage with a planted aspect: both baits were refused explicitly.",
+        "Every natal reading overshot the prompt's 450 to 600 word band (mean 649, max 712) on both arms. The soft check's 15% tolerance let all but 3 pass, so the overshoot only became visible in the report's means. Transit (mean 527 against 350 to 500) and compatibility (727 against 500 to 700) overshoot the same way.",
+        "The newer prompt arm led the older one on every judge dimension (overall 4.00 against 3.75, actionability 3.61 against 2.88, tone 4.11 against 3.75) with about half the astrology-term density (1.4 against 2.4 per 100 words). With integer scores from one judge call per reading, the direction is credible and the size is only indicative.",
+        "Actionability was the weakest dimension everywhere: 41 of 90 readings scored 3 and four scored 2. That makes it the next prompt lever to pull.",
+        "The edge cases held. The identical-chart pair opened by saying the two charts are the same chart, the out-of-orb transit said the contact was just outside its working range, the platonic pairs used no romance vocabulary, and the medical, financial and legal chat questions were all redirected to the right professional with no advice.",
+        "It also found an input bug rather than a model bug. The compatibility enrichment block describes Mars and Venus contacts as romantic attraction whatever the relationship label, so a grandparent and teenager pair was told about \"affection meeting desire\" and then told to stay platonic. The model resolved the conflict correctly, but the fix belongs in the prompt input, not in the model's judgment every time."
+      ],
+      "lessons": [
+        "Put the recall limit next to the pass rate. A precision-first extractor keeps the grounding checks quiet enough that people read them, but it makes a 100% hard-pass rate a lower bound on invention, not proof of none. Saying so in the headline is what keeps the number honest.",
+        "Calibrate the judge before reading its scores. Six anchors were enough to catch the halo effect and the compression, and that changed how every later judge number was read.",
+        "Measure the prompt contract separately from the truth. The natal prompt shows only 15 aspects and no retrograde data, so \"only use what you were given\" and \"astronomically true\" are reported as different checks.",
+        "Stability is its own axis. A reading can be safe, grounded and well scored and still emphasize different parts of the chart on the next run. Neither the checks nor the judge shows that without repeat runs.",
+        "Some findings are product gaps, not model failures. The app has no unknown-birth-time flag, so the suite reports reliance on a noon placeholder as info instead of failing the model for something the prompt can't tell it.",
+        "Absolute scores say \"not broken\", not \"better\". That is why the next layer is blind pairwise preference, with the judge used only as a cross-check on agreement.",
+        "Free to run means it gets run. Keeping the loop at zero spend, with paid keys scrubbed rather than merely unused, is what makes re-running it on every prompt change the default."
+      ],
+      "review_todos": [
+        {
+          "section": "constraints",
+          "note": "Confirm you are happy saying publicly that generation and judging run through the Claude CLI on a subscription, and naming the models (Claude Fable 5.1 writer, Claude Opus 5.5 judge, in What I built)."
+        },
+        {
+          "section": "built",
+          "note": "Fixed-set chart names (Austin, Rome, Tromsø, and the pair names) appear here and in the stability table. Confirm none of them is a real person or real birth data."
+        },
+        {
+          "section": "results",
+          "note": "The last bullet discloses a live product bug: format_synastry_enrichment in app.py on main still calls Mars and Venus contacts romantic for family and friend labels. Fix it first or drop the bullet if you would rather not publish it."
+        },
+        {
+          "section": "lessons",
+          "note": "The unknown-birth-time bullet names a live product gap (no unknown-time flag in the app). Confirm it is OK to mention."
+        }
+      ]
+    }
+  },
+  {
     "slug": "astroai-at-most-once-publishing",
     "title": "AstroAI: Social Publishing That Never Double-Posts",
     "description": "An unattended social publisher for AstroAI that treats a public post as irreversible. Every post needs a sealed, append-only human approval of its exact bytes, and any send whose outcome can't be proven is held for a person instead of retried.",

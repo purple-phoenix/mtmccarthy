@@ -237,6 +237,8 @@ CASE_STUDY_STRENGTHS = {
     'agents': 'Delivery with coding agents',
 }
 CASE_STUDY_SECTIONS = ('problem', 'constraints', 'built', 'verification', 'results')
+# Optional extra sections; each is a non-empty list of strings when present.
+CASE_STUDY_OPTIONAL_SECTIONS = ('design', 'checks', 'calibration', 'stability', 'lessons', 'delivery')
 REPO_VISIBILITIES = ('public', 'private', 'local')
 
 def _validate_project(project, slugs):
@@ -273,6 +275,29 @@ def _validate_project(project, slugs):
     for metric in study.get('metrics', []):
         if not (isinstance(metric, dict) and metric.get('value') and metric.get('label')):
             raise ValueError(f'{where} case_study.metrics entries need a value and a label')
+    for section in CASE_STUDY_OPTIONAL_SECTIONS:
+        items = study.get(section)
+        if items is not None and (not isinstance(items, list) or not items or not all(
+                isinstance(item, str) and item.strip() for item in items)):
+            raise ValueError(f'{where} case_study.{section} must be a non-empty list of strings')
+    sections = CASE_STUDY_SECTIONS + CASE_STUDY_OPTIONAL_SECTIONS
+    diagram = study.get('diagram')
+    if diagram is not None:
+        if 'design' not in study:
+            raise ValueError(f'{where} case_study.diagram needs a design section to sit in')
+        if not isinstance(diagram, list) or not diagram or not all(
+                isinstance(step, dict) and step.get('label') and step.get('detail') for step in diagram):
+            raise ValueError(f'{where} case_study.diagram steps need a label and a detail')
+    for section, table in study.get('tables', {}).items():
+        if section not in study or section not in sections:
+            raise ValueError(f'{where} case_study.tables.{section} has no matching section')
+        columns, rows = table.get('columns'), table.get('rows')
+        if not columns or not rows or any(len(row) != len(columns) for row in rows):
+            raise ValueError(f'{where} case_study.tables.{section} rows must match its columns')
+    # Review notes render as HTML comments, so they must not be able to close one.
+    for todo in study.get('review_todos', []):
+        if todo.get('section') not in sections or not todo.get('note') or '--' in todo['note']:
+            raise ValueError(f'{where} case_study.review_todos need a known section and a note without "--"')
 
 def load_projects():
     """Load projects from content/projects.json, validating every entry.
