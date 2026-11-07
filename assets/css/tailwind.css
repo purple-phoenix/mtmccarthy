@@ -245,6 +245,49 @@ a.bg-white.rounded-xl:hover {
     font-style: italic;
     color: #6b7280;
 }
+
+/* Interview posts: questions (h3) come from the AI interviewer; the paragraph
+   right after each one starts Matt's answer. */
+.interview-content h2 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7c3aed;
+    margin-top: 2.5rem;
+}
+.interview-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4c1d95;
+    margin-top: 2.75rem;
+    padding-left: 1rem;
+    border-left: 3px solid #c4b5fd;
+}
+.interview-content h3::before,
+.interview-content h3 + p::before {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+}
+.interview-content h3::before {
+    content: "AI interviewer";
+    color: #8b5cf6;
+}
+.interview-content h3 + p::before {
+    content: "Matt";
+    color: #6b7280;
+}
+.interview-content blockquote {
+    font-style: normal;
+    font-size: 1.375rem;
+    line-height: 1.5;
+    font-weight: 600;
+    color: #111827;
+}
 .blog-content hr {
     border: none;
     border-top: 1px solid #e5e7eb;

@@ -21,6 +21,22 @@ def test_post_without_hero_image_has_no_hero_img(client, make_post):
     assert 'class="w-full h-auto"' not in html
 
 
+def test_interview_post_shows_disclosure_and_audio_instead_of_hero(client, make_post):
+    make_post('an-interview', title='An Interview',
+              image_url='/static/images/profile.jpg',
+              body='### A question?\n\nAn answer.',
+              extra_front_matter=('format: "interview"',
+                                  'audio_url: "/static/audio/an-interview.m4a"',
+                                  'audio_length: "12 min"'))
+
+    html = client.get('/blog/an-interview').get_data(as_text=True)
+
+    assert 'asked live by an AI interviewer' in html
+    assert '<audio' in html and 'src="/static/audio/an-interview.m4a"' in html
+    assert 'blog-content interview-content' in html
+    assert 'class="w-full h-auto"' not in html
+
+
 def test_post_body_markdown_is_rendered(client, make_post):
     make_post('rich-post', title='Rich Post',
               body='Some **bold** text.\n\n```python\nprint("hi")\n```')

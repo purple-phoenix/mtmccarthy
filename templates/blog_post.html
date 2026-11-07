@@ -51,6 +51,9 @@
             {% if post.category %}
             <span class="ml-4 px-3 py-1 bg-white bg-opacity-20 rounded-full">{{ post.category }}</span>
             {% endif %}
+            {% if post.format == 'interview' %}
+            <span class="ml-4"><i class="fas fa-microphone mr-1"></i>Interview{% if post.audio_length %} · {{ post.audio_length }} audio{% endif %}</span>
+            {% endif %}
             {% if post.read_time %}
             <span class="ml-4">
                 <i class="far fa-clock mr-1"></i>{{ post.read_time }} min read
@@ -67,7 +70,18 @@
 <!-- Post Content -->
 <article class="py-12 bg-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {% if post.image_url %}
+        {% if post.format == 'interview' %}
+        <aside class="mb-10 rounded-xl border border-purple-200 bg-purple-50 p-6" aria-label="About this interview">
+            <p class="text-gray-700">
+                <i class="fas fa-microphone text-purple-600 mr-2"></i>
+                <strong>This is an interview.</strong> The questions were asked live by an AI interviewer. The answers are my own words, spoken out loud and lightly edited for readability.
+            </p>
+            {% if post.audio_url %}
+            <p class="mt-4 text-sm font-semibold uppercase tracking-wider text-purple-700">Listen to the full conversation{% if post.audio_length %} ({{ post.audio_length }}){% endif %}</p>
+            <audio class="mt-2 w-full" controls preload="metadata" src="{{ post.audio_url }}"></audio>
+            {% endif %}
+        </aside>
+        {% elif post.image_url %}
         <div class="mb-8 rounded-lg overflow-hidden">
             <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-auto" onerror="this.parentElement.style.display='none'">
         </div>
@@ -90,12 +104,18 @@
             </div>
         </nav>
         {% endif %}
-        <div class="blog-content">
+        <div class="blog-content{% if post.format == 'interview' %} interview-content{% endif %}">
             {{ post.body|safe }}
         </div>
 
+        {% if post.format == 'interview' %}
+        <p class="mt-12 border-t border-gray-200 pt-6 text-sm text-gray-500">
+            <strong>How this was made:</strong> I talked with an AI interviewer (Claude, speaking through an ElevenLabs voice). The questions are the AI's. Every answer is my own words from the recording, with filler words, false starts and repeats removed. Nothing was added except clarifications in [brackets].
+        </p>
+        {% endif %}
+
         <!-- Secretary Problem Visualization -->
-        {% if post.slug == 'secretary-problem-hiring' %}
+        {% if post.slug in ['secretary-problem-hiring', 'secretary-problem-interview'] %}
         <div class="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
             <h3 class="text-2xl font-bold mb-4 gradient-text">Interactive Visualization</h3>
             <p class="text-gray-600 mb-6">See the 37% rule in action. Each simulation shows how the algorithm selects from 10 candidates.</p>
