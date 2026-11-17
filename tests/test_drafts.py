@@ -9,6 +9,9 @@ content/blog/ by mistake, the folder no longer matches this list and the
 tests below fail. Publishing a draft on purpose means removing its slug from
 this list in the same change.
 """
+import re
+from urllib.parse import urlsplit
+
 import pytest
 from markupsafe import escape
 
@@ -27,7 +30,8 @@ DRAFT_SLUGS = [
     'x-space-to-podcast-feed',
 ]
 
-# Every place a published post is listed or linked from.
+# The main places a published post is listed or linked from. The sitemap crawl
+# below covers the rest (category, series and post pages).
 LISTING_PATHS = ['/', '/blog', '/feed.xml', '/sitemap.xml']
 
 
@@ -76,3 +80,14 @@ def test_drafts_are_not_listed_or_linked(client, path):
         title = _draft_title(slug)
         assert title not in body, f'{path} shows the draft title {title!r}'
         assert str(escape(title)) not in body, f'{path} shows the draft title {title!r}'
+
+
+def test_no_page_in_the_sitemap_links_a_draft(client):
+    """Category, series and post pages link posts too; crawl them all."""
+    sitemap = client.get('/sitemap.xml').get_data(as_text=True)
+    paths = sorted({urlsplit(loc).path or '/' for loc in re.findall(r'<loc>([^<]+)</loc>', sitemap)})
+    assert len(paths) > len(LISTING_PATHS), 'expected the sitemap to list the site pages'
+    for path in paths:
+        body = client.get(path).get_data(as_text=True)
+        for slug in DRAFT_SLUGS:
+            assert slug not in body, f'{path} links the draft {slug}'

@@ -20,7 +20,7 @@ The original sender wrapped `requests.post` in `for attempt in range(4)` and ret
 
 - **A DNS failure or refused connection** means the request never left the machine. Retrying is safe.
 - **A connection reset or read timeout** can arrive *after* the request body was sent. Buffer may already have created the post, and a retry creates it again.
-- **A 5xx or an unparseable body** never raised at all. It says nothing reliable about whether the post exists, yet the old code recorded it as a plain failure.
+- **A 5xx or an unparseable body** says nothing reliable about whether the post exists either. The old code never looked at a 5xx status, and recorded a body it could not parse as a plain failure.
 
 There is also the case no exception handler can see: **the process dies after the API call but before it records the result.** On the next run, the queue still says `pending`, and a naive drain sends the row again.
 
@@ -205,7 +205,7 @@ The tests use an in-memory `FakeTransport` that stands in for `requests.post` an
 
 ## What I'd Do Differently
 
-- **Use one classifier for both send paths.** Multi-image packages have their own sender and their own response classifier, and they disagree with the single-post path. The package path treats a GraphQL error as ambiguous, marks a 429 as a failure instead of leaving the row pending, and returns its ambiguous result as a string, so the drain does not stop the chunk, counts it as a failure, and exits zero. It only shows up as held, with a non-zero exit, on the next run. Each choice is defensible, but two classifiers for one provider is how gaps appear.
+- **Use one classifier for both send paths.** Multi-image packages have their own sender and their own response classifier, and they disagree with the single-post path. The package path treats a GraphQL error as ambiguous, marks a 429 as a failure instead of leaving the row pending, and returns its ambiguous result as a string, so the drain does not stop the chunk and counts it as a failure, which on its own does not make the run exit non-zero. It only shows up as held on the next run. Each choice is defensible, but two classifiers for one provider is how gaps appear.
 - **Stop relying only on local state.** The `createPost` input I send carries no idempotency key or client reference, so the ledger is the only dedupe mechanism. I would check whether the provider offers a dedupe field or a way to look up scheduled posts by channel and time, and use it to narrow what a human has to verify.
 - **Give the ledger a real store.** It is one JSON file, read in full on every check and never compacted, and `flock` only coordinates processes on one machine. That is fine for a single host, but it is the first thing that would break if the publisher moved.
 
