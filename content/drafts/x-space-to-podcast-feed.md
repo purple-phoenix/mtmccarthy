@@ -24,27 +24,27 @@ The whole thing is a few Bash scripts, a folder of markdown, and an Astro site. 
    |
    '-- transcribe-pending.sh --watch
           (ffmpeg -> 16 kHz WAV -> whisper-cli)
-                            --> spaces/transcripts/<slug>.txt + .vtt
+                            --> spaces/transcripts/<date>-<slug>.txt + .vtt
         |
         v
  trim intro/outro (ffmpeg, by hand)
         |
         v
- generate-episode-pages.sh --> site/src/content/episodes/<slug>.md
+ generate-episode-pages.sh --> site/src/content/episodes/<date>-<slug>.md
         |
         v
- rclone copy --> Cloudflare R2 --> media.jtworldteacher.com/episodes/<slug>.m4a
+ rclone copy --> Cloudflare R2 --> media.jtworldteacher.com/episodes/<date>-<slug>.m4a
         |
         v
  git push main --> GitHub Actions: npm run build --> GitHub Pages
                                     (Zod schema check, dist/feed.xml)
 ```
 
-The "one command" is `bash catalog/scripts/parallel-pipeline.sh queue.txt`. It handles the slow, boring part: getting the audio and a transcript for every URL in a queue. Everything after it is a short, deliberate step, and I'll explain why some of those are still manual.
+The "one command" is `bash catalog/scripts/parallel-pipeline.sh catalog/spaces/queue.txt`. It handles the slow, boring part: getting the audio and a transcript for every URL in a queue. Everything after it is a short, deliberate step, and I'll explain why some of those are still manual.
 
 ## Stage 1: Downloading the Space
 
-X doesn't offer a download button, but **yt-dlp** has an extractor for Spaces. As long as the host enabled recording, yt-dlp can resolve the URL and pull the audio as an `.m4a`.
+X doesn't offer a download button, but **yt-dlp** has an extractor for Spaces. As long as the host enabled recording, yt-dlp can resolve the URL and pull the audio as an `.m4a`. (That held through October 2026. Since November X issues longer Space IDs that yt-dlp 2026.08.19 does not recognise, so newer Spaces need a workaround the download script does not have yet.)
 
 `download-space.sh` handles one URL. It first asks yt-dlp for metadata without downloading anything, builds a filename from the date and a slugified title, and only downloads if that file isn't already there:
 
@@ -66,14 +66,14 @@ else
   # ...
 fi
 
-# Stub catalog post — only created on first run, never overwrites human edits.
+# Stub catalog post: only created on first run, never overwrites human edits.
 if [[ ! -f "$post" ]]; then
   # ... write frontmatter: date, space_id, space_url, space_title,
   # ... audio, audio_bytes, transcript, source_tweet, topics, source
 fi
 ```
 
-The `YYYY-MM-DD-slug` name is the key that ties everything together. The audio file, the transcript, the catalog stub, and the episode page all share it, so every later stage can find its inputs by name alone.
+The `YYYY-MM-DD-slug` name is the key that ties everything together. The audio file, the transcript, the catalog stub, and (apart from two hand-named early episodes) the episode page all share it, so every later stage can find its inputs by name alone.
 
 The catalog stub is a small markdown file with YAML frontmatter: the Space ID and URL, the original title, the audio path, the exact byte count, and the transcript path. It's the record that "this Space exists and we have it." **The script writes the stub once and never touches it again**, so any notes added by hand are safe on a re-run.
 
@@ -215,7 +215,7 @@ Publishing is `git push`. A GitHub Actions workflow runs `npm ci` and `npm run b
 
 The title says "almost" for a reason, and most of what I'd change comes from actual rough edges in the code.
 
-1. **Make it truly one command.** `parallel-pipeline.sh` stops at audio, transcripts, and catalog stubs. Episode pages, upload, and build are separate steps, and some of the docs still describe the pipeline as if it does more than it does.
+1. **Make it truly one command.** `parallel-pipeline.sh` stops at audio, transcripts, and catalog stubs. Episode pages, upload, and build are separate steps, and until recently some of the docs described the pipeline as if it did more than it does.
 2. **Fix slugify.** It lowercases and then does `cut -c1-60`, which can chop a word in half. Since the slug ends up in the audio URL, and published enclosure URLs should never move, an ugly truncation becomes permanent.
 3. **Use the air date, not `upload_date`.** For a scheduled Space, yt-dlp's `upload_date` is when the Space was created, which can be days before it aired. The newer tooling checks `release_timestamp`; the original download scripts still name files by `upload_date`.
 4. **Give episodes a stable GUID.** Tying the GUID to the page URL means renaming an episode file would make podcast apps see a brand-new episode. The Space ID is already in the frontmatter and would be a better identity.
@@ -228,7 +228,7 @@ The title says "almost" for a reason, and most of what I'd change comes from act
 
 None of this is sophisticated. It's yt-dlp, ffmpeg, whisper.cpp, rclone, and a static site generator held together with a few hundred lines of Bash. What made it work was a few rules applied everywhere:
 
-- **One naming key** (`YYYY-MM-DD-slug`) shared by every artifact
+- **One naming key** (`YYYY-MM-DD-slug`) shared by almost every artifact
 - **Check for output before doing work**, so re-running is always safe
 - **Never overwrite files a human might have edited**
 - **Let the build validate the feed** through a typed schema

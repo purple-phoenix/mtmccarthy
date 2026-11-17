@@ -14,7 +14,7 @@ The swap itself was small. Proving it was safe was the real work. A birth chart 
 
 The hosted service is the official HTTP API for **kerykeion**, an open-source Python astrology library built on Swiss Ephemeris. The app already shipped kerykeion locally for transit math. So "go local" mostly meant calling a library I already depended on instead of paying someone to call it for me.
 
-That is exactly the kind of change that feels too easy. The hosted API runs the kerykeion **v4** line. My local copy is **v5** (5.12.9). Same author and same lineage, but different major versions, different defaults, and different names for things.
+That is exactly the kind of change that feels too easy. The hosted API runs the kerykeion **v4** line. My local copy is **v5** (5.12.9 when I ran the comparison; the requirement is a version range, not a pin). Same author and same lineage, but different major versions, different defaults, and different names for things.
 
 ## What could silently go wrong
 
@@ -80,7 +80,7 @@ There are three references, each checking something different:
 The comparison itself is deliberately boring. The one subtle part is the wrap at 0°/360°:
 
 ```python
-PLANET_TOLERANCE_DEG = 1.0 / 60.0          # 1 arc-minute — the accuracy bar
+PLANET_TOLERANCE_DEG = 1.0 / 60.0          # 1 arc-minute: the accuracy bar
 ANGLE_TOLERANCE_DEG = 1.0 / 60.0           # Asc/MC/cusps, same bar
 INTERNAL_TOLERANCE_DEG = 1e-6              # abs_pos vs sign*30+position
 
@@ -114,7 +114,7 @@ Two of the charts are **expected to fail**. A 02:30 local time on a spring-forwa
 
 ### Recording the results
 
-The harness writes its own evidence. `python -m experiments.chart_fidelity --report` renders a markdown table into the repo, and a pytest class runs the same offline pass in CI and fails if any chart doesn't pass. The narrative doc explains the numbers. The numbers themselves come from code.
+The harness writes its own evidence. `python -m experiments.chart_fidelity --report CHART_ENGINE_FIDELITY_EVIDENCE.md` renders a markdown table into the repo, and a pytest class runs the same offline pass in CI and fails if any chart doesn't pass. The narrative doc explains the numbers. The numbers themselves come from code.
 
 ## What the evidence showed
 
@@ -137,14 +137,14 @@ pre_1912 = 'pre-1912' in chart.get('tags', [])
 planets_ok = planet_cmp['within_tolerance']
 # Pre-1912 charts diverge on time-sensitive angles because historical
 # tz offsets (LMT) differ between zoneinfo and kerykeion's own tz
-# handling — a local-vs-independent artefact, NOT a local-vs-production
+# handling: a local-vs-independent artefact, NOT a local-vs-production
 # gap (both are kerykeion). Do not fail the pass on it; annotate.
 angles_ok = angle_cmp['within_tolerance'] or pre_1912
 ```
 
 ## Making the cutover safe to reverse
 
-Evidence lowers the risk. It doesn't remove it. So the cutover shipped with three guards:
+Evidence lowers the risk. It doesn't remove it. So the cutover is protected by three guards (the first, the validation contract, landed in a follow-up about 13 hours later):
 
 - **A validation contract at every engine boundary.** Before any engine's output can be formatted or saved, `validate_chart_engine_output()` requires all ten planets, all four angles and all twelve cusps, each with finite numeric values and coherent sign-relative and absolute longitudes. A schema error from the hosted API can't become a blank, shareable chart.
 - **A one-line rollback.** Setting `CHART_ENGINE=rapidapi` puts a deploy back on the hosted engine.
@@ -161,7 +161,7 @@ except KerykeionException:
     raise
 except Exception as real_error:
     if os.environ.get('RAPIDAPI_KEY'):
-        logger.error("Chart engine REAL failed (%s) — falling back to the "
+        logger.error("Chart engine REAL failed (%s): falling back to the "
                      "RapidAPI engine.", type(real_error).__name__)
         return _rapidapi_chart_data(...)
     raise

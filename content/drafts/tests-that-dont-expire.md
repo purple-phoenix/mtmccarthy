@@ -133,7 +133,7 @@ The test module itself is on that list, so the fixture's slot helpers and the pr
 
 ### 3. A static guard against winding the timer back up
 
-The last part is a regex over the test module's own source. It flags a slot field (`publish_date`, `scheduled_at`) that holds a literal `YYYY-MM-DD`, or any date literal inside one of the slot helper bodies. The pattern is built from parts so it can't match its own definition, and it ignores prose, so the comment that mentions 2026-08-05 doesn't trip it. The shift tests only cover the paths they actually exercise. The static guard catches a hardcoded literal anywhere in the file before the calendar has a chance to.
+The last part is a regex over the test module's own source. It flags a slot field (`publish_date`, `scheduled_at`) that holds a literal `YYYY-MM-DD`, or any date literal inside one of the slot helper bodies. The pattern is built from parts so it can't match its own definition, and it ignores prose, so the comment that mentions 2026-08-05 doesn't trip it. The shift tests only cover the paths they actually exercise. The static guard catches a hardcoded date on a slot field, or inside a slot helper, before the calendar has a chance to.
 
 ### The rule in CLAUDE.md
 
@@ -141,7 +141,7 @@ The same commit added the rule to the repo's agent instructions (`CLAUDE.md` is 
 
 ## Trade-offs
 
-- **Inputs change from run to run.** Every run uses a different calendar date. The outcomes are deterministic, but the data isn't. A bug that only shows up for, say, a slot in daylight time versus standard time would appear on some runs and not others.
+- **Inputs change from day to day.** Runs on different days use different calendar dates. The outcomes are deterministic, but the data isn't. A bug that only shows up for, say, a slot in daylight time versus standard time would appear on some days and not others.
 - **The clock is patched, not injected.** Production calls `datetime.now(timezone.utc)` directly, so the shift test has to replace the `datetime` name in each module that makes a time-based decision. That list is maintained by hand.
 - **The delivery suite stays fixed on purpose.** `tests/test_publisher_at_most_once.py` still has a literal `scheduled_at`. Those strings never reach the expiry check. They're opaque identity keys passed straight to the fake transport, and keeping them constant keeps the identity assertions deterministic. The static guard only covers the approval module for that reason.
 - **Margins are arbitrary.** Thirty days ahead and five days back are generous, not principled. Any positive margin would work, as long as the ordering holds.
@@ -150,7 +150,7 @@ The same commit added the rule to the repo's agent instructions (`CLAUDE.md` is 
 
 **Write it relative from the first commit.** The original file already did this in one place: the HTTP approval request built its date as `datetime.now(timezone.utc) + timedelta(days=5)`. The shared fixture right next to it used a literal. The right pattern was already in the file. It just wasn't applied consistently.
 
-**Inject a clock into the gate.** The expiry decision reads the wall clock in `authorize_buffer_schedule` and `authorize_package_schedule`, and `brand_review/server.py` checks for a future slot in two more places. Passing in a `now` callable would let tests pin time directly instead of patching module globals. The list of places that consult the clock would then show up in function signatures, instead of being something I have to remember.
+**Inject a clock into the gate.** The expiry decision reads the wall clock in `authorize_buffer_schedule` and `authorize_package_schedule`, and `brand_review/server.py` checks for a future slot in several more places. Passing in a `now` callable would let tests pin time directly instead of patching module globals. The list of places that consult the clock would then show up in function signatures, instead of being something I have to remember.
 
 **Finish the job on `approved_at`.** The fixture still records the approval time as `datetime(2026, 8, 1, 16, approved_minute, tzinfo=timezone.utc)`. Right now that's harmless, because nothing compares `approved_at` to the clock or to the slot. But under the "a decade ago" shift, the fixture records an approval that happens years after the slot it approves. If I ever add a rule like "approval must come before the slot", this is the next timer, and I'd rather defuse it now than find it in a red build.
 

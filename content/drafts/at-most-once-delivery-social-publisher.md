@@ -6,7 +6,7 @@ excerpt: "How I rebuilt a social media publisher so that an unknown outcome prod
 read_time: "8"
 ---
 
-[Astrology Insights](https://myastrologyinsights.com), my birth-chart app, has a small pipeline that turns approved captions and images into scheduled social posts. A cron job drains a local JSON queue and sends each row to Buffer, a third-party scheduling service, through its GraphQL `createPost` mutation. For a long time the sender had a simple retry loop. That loop was wrong, and fixing it taught me more about delivery guarantees than anything I had read about them.
+[Astrology Insights](https://myastrologyinsights.com), my birth-chart app, has a small pipeline that turns approved captions and images into scheduled social posts. The drain job, built to run on a schedule, reads a local JSON queue and sends each row to Buffer, a third-party scheduling service, through its GraphQL `createPost` mutation. For a long time the sender had a simple retry loop. That loop was wrong, and fixing it taught me more about delivery guarantees than anything I had read about them.
 
 ## Why a Duplicate Is Worse Than a Miss
 
@@ -20,7 +20,7 @@ The original sender wrapped `requests.post` in `for attempt in range(4)` and ret
 
 - **A DNS failure or refused connection** means the request never left the machine. Retrying is safe.
 - **A connection reset or read timeout** can arrive *after* the request body was sent. Buffer may already have created the post, and a retry creates it again.
-- **A 5xx or an unparseable body** says nothing reliable about whether the post exists.
+- **A 5xx or an unparseable body** never raised at all. It says nothing reliable about whether the post exists, yet the old code recorded it as a plain failure.
 
 There is also the case no exception handler can see: **the process dies after the API call but before it records the result.** On the next run, the queue still says `pending`, and a naive drain sends the row again.
 
@@ -172,11 +172,11 @@ if transient blocks every    (429 leaves     no automatic
 
 When an attempt becomes ambiguous, the drain writes `ambiguous:<reason>` into the queue row and stops the chunk rather than sending more requests over a transport that just misbehaved. The queue materializer treats `ambiguous:` as a known status and carries it forward, so rebuilding the queue cannot reset a held row to `pending`. That gives **two durable guards: the ledger record and the queue status.**
 
-They are not always both present. After a hard crash, the queue row still reads `pending` and only the ledger knows a request went out. On the next run, `schedule_queue_post` checks the ledger before doing any work (before even staging the image), raises `DeliveryHeldError`, and the drain mirrors the hold into the queue row. There is a test for exactly this sequence.
+They are not always both present. After a hard crash, the queue row still reads `pending` and only the ledger knows a request went out. On the next run, `schedule_queue_post` checks the ledger before doing any work (before even staging the image), raises `DeliveryHeldError`, and the drain mirrors the hold into the queue row. There is a test for this sequence, simulating the crash with an interrupt.
 
 There is also a mirror-image repair. If the ledger says `delivered` but the process died before writing `ok` to the queue, the next drain sees `DeliveryAlreadyDeliveredError` and fixes the queue status without issuing a request.
 
-Finally, a held row is never quiet. The drain prints a `HELD` line with the reconcile command for every held row on every run, and the cron entry point exits non-zero while any row is held or newly ambiguous.
+Finally, a held row is never quiet. The drain prints a `HELD` line with the reconcile command for every held row on every run, and the scheduled entry point exits non-zero while any row is held or newly ambiguous.
 
 ## The Operator Script
 
@@ -194,20 +194,20 @@ The ordering inside the command took some care. It updates the queue row first, 
 
 ## Trade-offs
 
-- **Some posts will be missed.** A hard crash after Buffer accepted a post but before the ledger was resolved leaves an `in_flight` record. That post is live, but the system cannot know it, so it waits for a human. I accepted that cost on purpose.
+- **Some posts will be missed.** A crash or an ambiguous response when Buffer did *not* create the post still holds the row until a person checks, and if that happens after the scheduled slot has passed, the post misses it. I accepted that cost on purpose.
 - **A human is in the loop.** Reconciliation means opening Buffer and looking. That is fine at the volume this pipeline runs, but it would not scale.
 - **Some classifications are judgment calls.** The single-post path treats a GraphQL `errors` response as a definite refusal. That is a reasonable reading of the API, but it is an assumption, not a proof.
 - **Fewer retries means more visible failures.** A flaky network that resets connections mid-request now produces held rows instead of eventual success.
 
 ## Testing It
 
-The tests use an in-memory `FakeTransport` that stands in for `requests.post` and counts calls, since **the call count is the number a duplicate post would show up in**. When a scenario runs out of scripted responses, the fake raises `UnexpectedRequest`, which is deliberately a `BaseException` so the publisher cannot absorb it as an ordinary ambiguous outcome. Each ambiguous case scripts a success response second, so a regression that retried would quietly "succeed" and fail the call-count assertion. No test opens a socket or reads a credential.
+The tests use an in-memory `FakeTransport` that stands in for `requests.post` and counts calls, since **the call count is the number a duplicate post would show up in**. When a scenario runs out of scripted responses, the fake raises `UnexpectedRequest`, which is deliberately a `BaseException` so the publisher cannot absorb it as an ordinary ambiguous outcome. Most ambiguous cases script a success response second, so a regression that retried would quietly "succeed" and fail the call-count assertion. The rest authorize only one request, so a retry hits `UnexpectedRequest`. No test opens a socket or reads a credential.
 
 ## What I'd Do Differently
 
-- **Use one classifier for both send paths.** Multi-image packages have their own sender and their own response classifier, and they disagree with the single-post path. The package path treats a GraphQL error as ambiguous, marks a 429 as a failure instead of leaving the row pending, and returns its ambiguous result as a string, so the drain does not stop the chunk and does not count it as newly ambiguous until the next run. Each choice is defensible, but two classifiers for one provider is how gaps appear.
+- **Use one classifier for both send paths.** Multi-image packages have their own sender and their own response classifier, and they disagree with the single-post path. The package path treats a GraphQL error as ambiguous, marks a 429 as a failure instead of leaving the row pending, and returns its ambiguous result as a string, so the drain does not stop the chunk, counts it as a failure, and exits zero. It only shows up as held, with a non-zero exit, on the next run. Each choice is defensible, but two classifiers for one provider is how gaps appear.
 - **Stop relying only on local state.** The `createPost` input I send carries no idempotency key or client reference, so the ledger is the only dedupe mechanism. I would check whether the provider offers a dedupe field or a way to look up scheduled posts by channel and time, and use it to narrow what a human has to verify.
-- **Give the ledger a real store.** It is one JSON file, read in full on every check and never compacted, and `flock` only coordinates processes on one machine. That is fine for a single cron host, but it is the first thing that would break if the publisher moved.
+- **Give the ledger a real store.** It is one JSON file, read in full on every check and never compacted, and `flock` only coordinates processes on one machine. That is fine for a single host, but it is the first thing that would break if the publisher moved.
 
 ## Conclusion
 

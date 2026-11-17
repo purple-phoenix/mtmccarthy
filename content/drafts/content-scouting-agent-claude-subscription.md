@@ -54,7 +54,7 @@ A run is four stages: gather, judge, read, and output.
 
 Three sources run concurrently in a thread pool:
 
-- **Planned searches**: Claude writes eight YouTube search queries from the profile. The prompt asks for at least five distinct interest areas, about 20% exploratory queries on adjacent topics, and specific names and concepts rather than generic terms. `yt-dlp` runs each query and drops live and upcoming streams and Shorts.
+- **Planned searches**: Claude writes eight YouTube search queries from the profile. The prompt asks for a fixed number of queries per topic lane (the lanes are a short list in the config file), about 20% exploratory queries on adjacent topics, and specific names and concepts rather than generic terms. `yt-dlp` runs each query and drops live and upcoming streams and Shorts.
 - **Followed channels**: each channel in a `channels.json` file is checked through YouTube's public RSS feed for uploads from the last ten days. No API key is involved.
 - **Web scout**: a separate Claude call with the `WebSearch` and `WebFetch` tools looks for essays, blog posts, and papers. The prompt asks it to confirm each URL loads, prefer canonical sources, and avoid paywalls and abstract-only pages.
 
@@ -72,7 +72,7 @@ def judge_all(cfg: Config, conn, profile: str, feedback: dict, cands: list[dict]
     for i in range(0, len(cands), 40):
         batch = cands[i:i + 40]
         try:
-            scores = agents.judge(profile, feedback, batch, cfg.model("judge"))
+            scores = agents.judge(profile, feedback, batch, cfg.model("judge"), lanes=cfg.lanes)
         except Exception as e:
             log.warning("judge batch failed, will retry next run: %s", e)
             continue
@@ -81,15 +81,16 @@ def judge_all(cfg: Config, conn, profile: str, feedback: dict, cands: list[dict]
             if s is None:
                 continue
             passed = s["score"] >= cfg.run["min_judge_score"]
+            lane = s.get("lane") if s.get("lane") in cfg.lane_ids else None
             db.insert(conn, {**c, "status": "candidate" if passed else "rejected",
-                             "score": s["score"], "reason": s["reason"]})
+                             "score": s["score"], "reason": s["reason"], "lane": lane})
 ```
 
 A failed batch is simply not written, so those candidates come back next run.
 
 ### Read
 
-Passing candidates go into a pool, and each run picks the eight highest-scoring ones, capped at six of any one kind so a run is never all videos or all articles. Leftovers from earlier runs stay in the pool.
+Passing candidates go into a pool, and each run picks the eight highest-scoring ones, capped at six of any one kind so neither videos nor articles can take all eight slots. Leftovers from earlier runs stay in the pool.
 
 For videos, Muse pulls English captions through `yt-dlp`, preferring human captions over auto-generated ones and collapsing the rolling repeats that auto-captions produce. If there are no captions, or YouTube rate-limits the caption endpoint, it downloads the audio into a temporary directory, transcribes it locally with `mlx-whisper`, and the audio is deleted with the directory. For articles, `trafilatura` extracts the main text, and anything under 3,000 characters is treated as a stub or paywall. arXiv PDF links are rewritten to the HTML rendering because the PDFs do not extract well.
 
@@ -174,6 +175,8 @@ def normalize(url: str) -> str:
 
 
 def item_id(url: str) -> str:
+    if m := ARXIV_RE.search(url):  # abs, pdf, and html links are one paper
+        url = f"https://arxiv.org/abs/{m.group(1)}"
     return "web:" + hashlib.sha1(normalize(url).encode()).hexdigest()[:12]
 ```
 
@@ -183,7 +186,7 @@ Transient YouTube errors get **exactly one retry**: the first failure leaves the
 
 ## Scheduling
 
-Muse runs on an always-on Mac mini. A deploy script syncs the code (never the data), upgrades dependencies, runs the tests, and installs two LaunchAgents: a daily run at 05:30 and an always-on feed server. The feed binds to localhost and is exposed only on my private Tailscale network with `tailscale serve`, never to the public internet. A run takes roughly 5-15 minutes.
+Muse runs on an always-on Mac mini. A deploy script syncs the code (never the data), upgrades dependencies, runs the tests, and installs two LaunchAgents: a daily run at 05:30 and an always-on feed server. The feed binds to localhost and is exposed only on my private Tailscale network with `tailscale serve`, never to the public internet. A scheduled run takes roughly 3 to 15 minutes.
 
 ## Subscription vs API
 
@@ -193,16 +196,16 @@ Running on a subscription instead of an API key was the point, but it comes with
 
 **Headless auth was the hardest part.** The interactive login worked when I ran Muse by hand, but went stale under launchd with "OAuth session expired". The fix is a long-lived token from `claude setup-token`, stored in a mode-600 file outside the repo and passed to the CLI as `CLAUDE_CODE_OAUTH_TOKEN`. The env filter above also strips the other `CLAUDE*` variables, so a run launched from inside a Claude Code session does not inherit that session's state.
 
-**Usage is shared and bounded.** A subscription has usage limits shared with my own interactive use, so I kept the call count small and fixed. A daily run makes one planning call, one scouting call, one judge call per 40 candidates, and at most eight summarize calls. The only call with tools is the scout.
+**Usage is shared and bounded.** A subscription has usage limits shared with my own interactive use, so I kept the call count small and bounded. A daily run makes one planning call, one scouting call, one judge call per 40 candidates, and at most eight summarize calls. The only call with tools is the scout.
 
-**Staying sensible.** This is a single-user tool that runs once a day for my own reading. It talks to Claude only through the official CLI, authenticates with the CLI's own `claude setup-token` command, and never handles a password or scrapes credentials.
+**Staying sensible.** This is a single-user tool that runs once a day for my own reading. It talks to Claude only through the official CLI, authenticates with the CLI's own `claude setup-token` command, and never handles a Claude password or session cookie.
 
 ## What I'd Do Differently
 
 - **Treat Claude errors as transient.** YouTube errors get one retry, but an `LLMError` during summarizing, whether a timeout or an error result, falls into the generic exception handler and marks the item `failed` for good. A usage-limit hit mid-run would quietly discard good candidates. The planner call is also the one LLM call in `gather` without a `try`, so if it fails the whole run stops. The same `_retry_or_fail` path should cover Claude-side failures.
-- **Enforce variety structurally.** An early run skewed heavily toward one research topic, and the fix so far has been prompt wording in the planner and judge. The only structural diversity control is the per-kind cap. A per-topic or per-source cap in `pick` would be more reliable than asking nicely.
+- **Enforce variety structurally.** An early run skewed heavily toward one research topic, and the first fix was prompt wording in the planner and judge. Since then each topic lane gets a fixed quota of search queries, but `pick` itself still has only the per-kind cap. A per-topic or per-source cap in `pick` would be more reliable than asking nicely.
 - **Richer feedback.** The taste signal is just the titles and sources of the last 25 liked and disliked items. It cannot say *why* I liked something, and the notes and tags Claude already wrote are not used.
-- **Test the LLM boundary.** The tests cover caption parsing, URL normalisation, the retry rule, and note filename and duration formatting, but nothing exercises `llm.ask` or the prompts. A fake `claude` binary returning canned JSON would catch schema drift cheaply.
+- **Test the LLM boundary.** The tests cover caption parsing, URL normalisation, the retry rule, and note filename and duration formatting, and they check the `claude` command line and the prompt builders with the CLI call mocked, but nothing runs against the CLI itself. A fake `claude` binary returning canned JSON would catch schema drift cheaply.
 - **Push, don't wait to be pulled.** A digest notification, podcasts, and search in the feed are all on the ideas list and not built. Right now I have to remember to open the feed.
 
 ## Conclusion
