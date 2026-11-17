@@ -42,7 +42,7 @@ generation_last_error = db.Column(db.String(100), nullable=True)
 
 ### A unique, nullable claim key
 
-The claim key is the user's id plus a hash of the request's identity: both people's normalized names and birth details, the relationship label, and the enrichment recipe version. It is **unique but nullable**. While a report is in flight it holds the key; when the report reaches ready or failed, the key is set back to `NULL`.
+The claim key is the user's id plus a hash of the request's identity: both people's normalized names and birth details, the relationship label, the enrichment recipe version, and where the second person came from (typed in by hand, a specific friend, or one of the user's own saved charts). It is **unique but nullable**. While a report is in flight it holds the key; when the report reaches ready or failed, the key is set back to `NULL`.
 
 That gives me two properties at once. The database itself refuses a second in-flight job for the same request, no matter how many processes race. And because `NULL` values don't collide, a finished report releases the key so a later refresh can create a new historical report instead of overwriting the old one.
 
@@ -107,7 +107,7 @@ if claimed == 1:
 A few details matter here:
 
 - **Attempts are counted at claim time.** If a worker dies without cleaning up, that attempt still counts. Three claims and the job is done, one way or another.
-- **Waiting in the queue costs nothing.** Only a claim increments the counter.
+- **Waiting in the queue costs no attempt.** Only a claim increments the counter. (After the fix described below, a job left unclaimed for more than 10 minutes does fail.)
 - **The lease is a fresh UUID.** Every later write checks it, so a worker that lost its lease can't finalize the job.
 
 ### Running the job in a killable child
@@ -194,7 +194,7 @@ if report.active_claim_key:
 
 The same predicate is mirrored in the dead-letter sweep, which runs before every claim, and for the requested pair before every enqueue. Stale rows flip to failed with `generation_last_error='no_worker_claimed'` and release their claim key, so a re-submit creates a fresh job instead of getting the stuck one back. A test reproduces exactly that production shape and asserts the "already claimed" log line never appears.
 
-The 10 minute window was picked against the healthy cadence, and a test pins it: it must be under 15 minutes and longer than a full lease plus the longest retry delay. A worker that is merely slow or retrying never trips it.
+The 10 minute window was picked against the healthy cadence, and a test pins it: it must be under 15 minutes and longer than a full lease plus the longest retry delay. A worker that is slow but holding a lease, or retrying with nothing ahead of it, never trips it. A long backlog behind one busy worker can.
 
 The UI got more honest too. After two minutes the waiting copy says "taking longer than usual" and when it will time out. A row that fails without ever being attempted says the reading service didn't pick it up, that nothing was counted against the user's plan, and offers a retry.
 
