@@ -141,6 +141,27 @@ def test_reset_stops_a_running_simulation(offline_page, app_server):
     assert errors == []
 
 
+def test_chart_still_draws_after_two_large_runs(offline_page, app_server):
+    page, errors = open_simulation(offline_page, app_server)
+
+    for expected in (100_000, 200_000):
+        page.evaluate("document.getElementById('run-100000').click()")
+        wait_for_timers(page)
+        assert results_recorded(page) == expected
+
+    assert count_shown(page) == '200,000'
+    # The chart is drawn from a timer after the last batch; an error there
+    # shows up as a page error.
+    assert errors == []
+    drawn = page.evaluate("""() => {
+        const canvas = document.getElementById('rank-chart');
+        const pixels = canvas.getContext('2d')
+            .getImageData(0, 0, canvas.width, canvas.height).data;
+        return pixels.some((value) => value !== 0);
+    }""")
+    assert drawn, 'expected the rank chart to be drawn'
+
+
 def test_count_updates_in_place_during_a_run_started_from_zero(offline_page, app_server):
     page, errors = open_simulation(offline_page, app_server)
 

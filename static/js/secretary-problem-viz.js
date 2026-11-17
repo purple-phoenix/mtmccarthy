@@ -478,7 +478,9 @@ class SecretaryProblemViz {
             rankCounts[r.rank] = (rankCounts[r.rank] || 0) + 1;
         });
         
-        const maxRank = Math.max(...this.results.map(r => r.rank));
+        // Spread the handful of distinct ranks, not every result: spreading
+        // a few hundred thousand arguments overflows the call stack
+        const maxRank = Math.max(...Object.keys(rankCounts).map(Number));
         const maxCount = Math.max(...Object.values(rankCounts));
         
         if (maxRank <= 0 || maxCount <= 0) {
