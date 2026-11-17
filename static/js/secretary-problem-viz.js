@@ -9,7 +9,9 @@ class SecretaryProblemViz {
         this.lookSeeCount = 0;
         this.threshold = 0;
         this.results = []; // Store results from multiple simulations
-        this.simulationCount = 0;
+        // The one large run in progress, or null. Only reset() and the run
+        // itself clear it, so there is never more than one chain of batches.
+        this.activeRun = null;
     }
 
     generateCandidates() {
@@ -19,9 +21,11 @@ class SecretaryProblemViz {
             this.candidates.push({
                 index: i,
                 score: Math.random(),
-                explored: false,
-                selected: false,
-                status: 'not_seen' // 'explored', 'selected', 'not_seen'
+                // 'explored': interviewed in the look-see phase
+                // 'passed_over': interviewed in the select phase, not hired
+                // 'selected': hired
+                // 'not_seen': never interviewed
+                status: 'not_seen'
             });
         }
         
@@ -37,7 +41,6 @@ class SecretaryProblemViz {
     runAlgorithm() {
         // Phase 1: Look-see (explore first 37%)
         for (let i = 0; i < this.lookSeeCount; i++) {
-            this.candidates[i].explored = true;
             this.candidates[i].status = 'explored';
             if (this.candidates[i].score > this.threshold) {
                 this.threshold = this.candidates[i].score;
@@ -47,23 +50,22 @@ class SecretaryProblemViz {
         // Phase 2: Select first candidate better than threshold
         this.selectedIndex = -1;
         for (let i = this.lookSeeCount; i < this.numCandidates; i++) {
-            this.candidates[i].status = 'not_seen';
             if (this.candidates[i].score > this.threshold) {
                 this.selectedIndex = i;
-                this.candidates[i].selected = true;
                 this.candidates[i].status = 'selected';
                 break;
             }
+            // Interviewed, but not better than the threshold
+            this.candidates[i].status = 'passed_over';
         }
 
         // If no one beat threshold, select last candidate
         if (this.selectedIndex === -1) {
             this.selectedIndex = this.numCandidates - 1;
-            this.candidates[this.selectedIndex].selected = true;
             this.candidates[this.selectedIndex].status = 'selected';
         }
 
-        // Mark remaining candidates as explored if we passed them
+        // Candidates after the selected one were never interviewed
         for (let i = this.selectedIndex + 1; i < this.numCandidates; i++) {
             this.candidates[i].status = 'not_seen';
         }
@@ -76,115 +78,136 @@ class SecretaryProblemViz {
         return rank;
     }
 
+    // Run one simulation and add it to the results
+    recordSimulation() {
+        this.generateCandidates();
+        const rank = this.runAlgorithm();
+        this.results.push({
+            simulation: this.results.length + 1,
+            rank: rank,
+            isOptimal: rank === 1,
+            selectedIndex: this.selectedIndex,
+            bestIndex: this.bestIndex
+        });
+    }
+
+    isRunning() {
+        return this.activeRun !== null;
+    }
+
+    runSingleSimulation() {
+        if (this.isRunning()) {
+            return;
+        }
+        this.recordSimulation();
+        this.render();
+    }
+
     runMultipleSimulations(count = 100) {
-        // Add simulations to existing results (additive)
-        const startIndex = this.results.length;
-        
+        // Add simulations to existing results (additive). One run at a time:
+        // a press while a run is going is ignored.
+        if (this.isRunning()) {
+            return;
+        }
+
         // For large counts, run in batches to prevent UI freezing
         const batchSize = 1000;
-        const batches = Math.ceil(count / batchSize);
-        let currentBatch = 0;
-        
-        const runBatch = () => {
-            const batchStart = currentBatch * batchSize;
-            const batchEnd = Math.min(batchStart + batchSize, count);
-            
-            for (let i = batchStart; i < batchEnd; i++) {
-                this.generateCandidates();
-                const rank = this.runAlgorithm();
-                this.results.push({
-                    simulation: startIndex + i + 1,
-                    rank: rank,
-                    isOptimal: rank === 1,
-                    selectedIndex: this.selectedIndex,
-                    bestIndex: this.bestIndex
-                });
+
+        if (count <= batchSize) {
+            // Small count, run synchronously
+            for (let i = 0; i < count; i++) {
+                this.recordSimulation();
             }
-            
-            currentBatch++;
-            
-            // Update stats after each batch for visual feedback
-            if (currentBatch < batches) {
-                // Update stats without full re-render
+            this.render();
+            return;
+        }
+
+        const run = { remaining: count, timer: null };
+        this.activeRun = run;
+        this.setRunButtonsDisabled(true);
+
+        const runBatch = () => {
+            run.timer = null;
+            if (this.activeRun !== run) {
+                // reset() ended this run
+                return;
+            }
+
+            const batchCount = Math.min(batchSize, run.remaining);
+            for (let i = 0; i < batchCount; i++) {
+                this.recordSimulation();
+            }
+            run.remaining -= batchCount;
+
+            if (run.remaining > 0) {
+                // Update stats after each batch for visual feedback,
+                // without a full re-render, then schedule the next batch
                 this.updateStatsOnly();
-                // Schedule next batch
-                setTimeout(runBatch, 0);
+                run.timer = setTimeout(runBatch, 0);
             } else {
                 // All batches complete, do full render
+                this.activeRun = null;
                 this.render();
             }
         };
-        
+
         // Start first batch
-        if (count > batchSize) {
-            runBatch();
-        } else {
-            // Small count, run synchronously
-            for (let i = 0; i < count; i++) {
-                this.generateCandidates();
-                const rank = this.runAlgorithm();
-                this.results.push({
-                    simulation: startIndex + i + 1,
-                    rank: rank,
-                    isOptimal: rank === 1,
-                    selectedIndex: this.selectedIndex,
-                    bestIndex: this.bestIndex
-                });
-            }
-            this.render();
-        }
+        runBatch();
     }
-    
-    updateStatsOnly() {
-        // Update only the stats display without full re-render
-        let rank1Percent = 0;
-        let rank2Percent = 0;
-        let rank3Percent = 0;
-        
-        if (this.results.length > 0) {
-            const rank1Count = this.results.filter(r => r.rank === 1).length;
-            const rank2Count = this.results.filter(r => r.rank === 2).length;
-            const rank3Count = this.results.filter(r => r.rank === 3).length;
-            
-            rank1Percent = (rank1Count / this.results.length * 100).toFixed(1);
-            rank2Percent = (rank2Count / this.results.length * 100).toFixed(1);
-            rank3Percent = (rank3Count / this.results.length * 100).toFixed(1);
+
+    // End the large run in progress, if there is one
+    cancelRun() {
+        const run = this.activeRun;
+        if (run === null) {
+            return;
         }
-        
-        // Update simulation count display
-        const simCountEl = document.querySelector('.viz-stats .grid:last-child div:first-child .text-2xl');
-        if (simCountEl) {
-            simCountEl.textContent = this.results.length.toLocaleString();
+        if (run.timer !== null) {
+            clearTimeout(run.timer);
         }
-        
-        // Update rank 1 percentage
-        const rank1El = document.querySelector('.viz-stats .grid:last-child div:nth-child(2) .text-2xl');
-        if (rank1El) {
-            rank1El.textContent = rank1Percent + '%';
-        }
-        
-        // Update rank 2 percentage
-        const rank2El = document.querySelector('.viz-stats .grid:last-child div:nth-child(3) .text-2xl');
-        if (rank2El) {
-            rank2El.textContent = rank2Percent + '%';
-        }
-        
-        // Update rank 3 percentage
-        const rank3El = document.querySelector('.viz-stats .grid:last-child div:nth-child(4) .text-2xl');
-        if (rank3El) {
-            rank3El.textContent = rank3Percent + '%';
-        }
-        
-        // Update total simulations in chart header
-        const totalSimsEl = document.querySelector('.results-graph .text-sm .text-purple-600');
-        if (totalSimsEl) {
-            totalSimsEl.textContent = this.results.length.toLocaleString();
+        this.activeRun = null;
+    }
+
+    setRunButtonsDisabled(disabled) {
+        this.container.querySelectorAll('button[data-run]').forEach(button => {
+            button.disabled = disabled;
+        });
+    }
+
+    // Count and rank percentages, formatted for display
+    resultStats() {
+        const total = this.results.length;
+        const percent = rank => total === 0 ? '0.0' :
+            (this.results.filter(r => r.rank === rank).length / total * 100).toFixed(1);
+        return {
+            total: total.toLocaleString(),
+            rank1Percent: percent(1),
+            rank2Percent: percent(2),
+            rank3Percent: percent(3)
+        };
+    }
+
+    setStat(name, text) {
+        const el = this.container.querySelector(`[data-stat="${name}"]`);
+        if (el) {
+            el.textContent = text;
         }
     }
 
+    updateStatsOnly() {
+        // Update only the stats display without full re-render
+        const stats = this.resultStats();
+        this.setStat('simulations-run', stats.total);
+        this.setStat('rank-1-percent', stats.rank1Percent + '%');
+        this.setStat('rank-2-percent', stats.rank2Percent + '%');
+        this.setStat('rank-3-percent', stats.rank3Percent + '%');
+        // Total simulations in the chart header, when the chart is shown
+        this.setStat('total-simulations', stats.total);
+    }
+
     reset() {
+        // End a run in progress first, so no later batch adds to the cleared results
+        this.cancelRun();
         this.results = [];
-        this.simulationCount = 0;
         this.render();
     }
 
@@ -198,37 +221,26 @@ class SecretaryProblemViz {
         
         const isOptimal = this.selectedIndex === this.bestIndex;
         
-        // Calculate percentages for rank 1, 2, and 3
-        let rank1Percent = 0;
-        let rank2Percent = 0;
-        let rank3Percent = 0;
-        
-        if (this.results.length > 0) {
-            const rank1Count = this.results.filter(r => r.rank === 1).length;
-            const rank2Count = this.results.filter(r => r.rank === 2).length;
-            const rank3Count = this.results.filter(r => r.rank === 3).length;
-            
-            rank1Percent = (rank1Count / this.results.length * 100).toFixed(1);
-            rank2Percent = (rank2Count / this.results.length * 100).toFixed(1);
-            rank3Percent = (rank3Count / this.results.length * 100).toFixed(1);
-        }
+        const stats = this.resultStats();
+        // Run buttons are off while a large run is going
+        const runDisabled = this.isRunning() ? 'disabled' : '';
         
         let html = `
             <div class="secretary-viz-container">
                 <div class="button-container mb-6 flex flex-wrap gap-3 justify-center">
-                    <button id="run-single" class="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                    <button id="run-single" data-run ${runDisabled} class="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         Run Single Simulation
                     </button>
-                    <button id="run-100" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    <button id="run-100" data-run ${runDisabled} class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         +100 Simulations
                     </button>
-                    <button id="run-1000" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    <button id="run-1000" data-run ${runDisabled} class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         +1,000 Simulations
                     </button>
-                    <button id="run-10000" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                    <button id="run-10000" data-run ${runDisabled} class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         +10,000 Simulations
                     </button>
-                    <button id="run-100000" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                    <button id="run-100000" data-run ${runDisabled} class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         +100,000 Simulations
                     </button>
                     <button id="reset" class="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">
@@ -240,7 +252,7 @@ class SecretaryProblemViz {
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-4">
                         <div>
                             <div class="text-sm text-gray-600">Total Candidates</div>
-                            <div class="text-2xl font-bold text-gray-900">${this.numCandidates}</div>
+                            <div class="text-2xl font-bold text-gray-900" data-stat="total-candidates">${this.numCandidates}</div>
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Look-See Phase</div>
@@ -257,26 +269,24 @@ class SecretaryProblemViz {
                             </div>
                         </div>
                     </div>
-                    ${this.results.length > 0 ? `
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-4 border-t border-gray-300">
                         <div>
                             <div class="text-sm text-gray-600">Simulations Run</div>
-                            <div class="text-2xl font-bold text-gray-900">${this.results.length.toLocaleString()}</div>
+                            <div class="text-2xl font-bold text-gray-900" data-stat="simulations-run">${stats.total}</div>
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Rank 1 %</div>
-                            <div class="text-2xl font-bold text-green-600">${rank1Percent}%</div>
+                            <div class="text-2xl font-bold text-green-600" data-stat="rank-1-percent">${stats.rank1Percent}%</div>
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Rank 2 %</div>
-                            <div class="text-2xl font-bold text-blue-600">${rank2Percent}%</div>
+                            <div class="text-2xl font-bold text-blue-600" data-stat="rank-2-percent">${stats.rank2Percent}%</div>
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Rank 3 %</div>
-                            <div class="text-2xl font-bold text-purple-600">${rank3Percent}%</div>
+                            <div class="text-2xl font-bold text-purple-600" data-stat="rank-3-percent">${stats.rank3Percent}%</div>
                         </div>
                     </div>
-                    ` : ''}
                 </div>
 
                 <div class="candidates-visualization mb-4">
@@ -291,14 +301,12 @@ class SecretaryProblemViz {
         `;
 
         this.candidates.forEach((candidate, idx) => {
-            let phase = idx < this.lookSeeCount ? 'explore' : 
-                       idx <= this.selectedIndex ? 'select' : 'not-seen';
-            
             let height = Math.max(40, candidate.score * 150); // Scale to 40-190px
             let bgColor = 'bg-gray-300';
             let borderColor = 'border-gray-400';
             let textColor = 'text-gray-700';
             let label = '';
+            let statusText = 'not seen';
             
             if (idx === this.bestIndex) {
                 borderColor = 'border-2 border-yellow-400';
@@ -308,23 +316,30 @@ class SecretaryProblemViz {
             if (candidate.status === 'explored') {
                 bgColor = 'bg-blue-200';
                 borderColor = 'border-blue-400';
+                statusText = 'interviewed in the explore phase';
+            } else if (candidate.status === 'passed_over') {
+                // Interviewed in the select phase: drawn in that phase's colour
+                bgColor = 'bg-orange-200';
+                borderColor = 'border-orange-400';
+                statusText = 'interviewed and passed over';
             } else if (candidate.status === 'selected') {
                 bgColor = isOptimal ? 'bg-green-400' : 'bg-orange-400';
                 borderColor = isOptimal ? 'border-green-600' : 'border-orange-600';
                 borderColor += ' border-2';
                 textColor = 'text-white font-bold';
                 label += '<div class="absolute -bottom-6 text-xs font-bold">SELECTED</div>';
+                statusText = 'selected';
             }
             
-            // Show score only for selected and best candidates, or use a smaller display
-            const showScore = idx === this.selectedIndex || idx === this.bestIndex || idx < this.lookSeeCount;
+            // Show the score of every candidate who was interviewed, and of the best one
+            const showScore = candidate.status !== 'not_seen' || idx === this.bestIndex;
             
             html += `
-                <div class="candidate-card relative flex flex-col items-center">
+                <div class="candidate-card relative flex flex-col items-center" data-status="${candidate.status}">
                     ${label}
                     <div class="candidate-bar ${bgColor} ${borderColor} rounded-t ${textColor} w-full flex items-center justify-center text-xs font-semibold transition-all"
                          style="height: ${height}px; min-height: 20px;"
-                         title="Candidate ${idx + 1}: Score ${candidate.score.toFixed(3)}">
+                         title="Candidate ${idx + 1}: Score ${candidate.score.toFixed(3)} (${statusText})">
                         ${showScore ? (candidate.score * 100).toFixed(0) : ''}
                     </div>
                     ${idx === this.selectedIndex || idx === this.bestIndex || idx < 3 || idx >= this.numCandidates - 3 ? 
@@ -355,7 +370,7 @@ class SecretaryProblemViz {
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-bold text-lg">Rank Distribution</h4>
                         <div class="text-sm text-gray-600 font-semibold">
-                            Total Simulations: <span class="text-purple-600 text-lg">${this.results.length.toLocaleString()}</span>
+                            Total Simulations: <span class="text-purple-600 text-lg" data-stat="total-simulations">${stats.total}</span>
                         </div>
                     </div>
                     <div class="graph-container" style="height: 300px; position: relative;">
@@ -378,16 +393,7 @@ class SecretaryProblemViz {
         
         if (runSingleBtn) {
             runSingleBtn.onclick = () => {
-                this.generateCandidates();
-                const rank = this.runAlgorithm();
-                this.results.push({
-                    simulation: this.results.length + 1,
-                    rank: rank,
-                    isOptimal: rank === 1,
-                    selectedIndex: this.selectedIndex,
-                    bestIndex: this.bestIndex
-                });
-                this.render();
+                this.runSingleSimulation();
             };
         }
         
@@ -552,11 +558,6 @@ class SecretaryProblemViz {
         ctx.restore();
     }
 
-    simulate() {
-        this.generateCandidates();
-        this.runAlgorithm();
-        this.render();
-    }
 }
 
 // Initialize visualization when page loads
@@ -565,16 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (vizContainer) {
         window.secretaryViz = new SecretaryProblemViz('secretary-problem-viz', 50);
         // Run first simulation automatically on page load
-        window.secretaryViz.generateCandidates();
-        const rank = window.secretaryViz.runAlgorithm();
-        window.secretaryViz.results.push({
-            simulation: 1,
-            rank: rank,
-            isOptimal: rank === 1,
-            selectedIndex: window.secretaryViz.selectedIndex,
-            bestIndex: window.secretaryViz.bestIndex
-        });
-        window.secretaryViz.render();
+        window.secretaryViz.runSingleSimulation();
     }
 });
 
