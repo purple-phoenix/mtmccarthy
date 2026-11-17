@@ -27,7 +27,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Content pipeline
 
-- Blog posts are Markdown files in `content/blog/` with YAML front-matter (`title`, `date`, `category`, `excerpt`, `read_time`, optional `image_url`). The slug is the filename.
+- Blog posts are Markdown files in `content/blog/` with YAML front-matter (`title`, `date`, `category`, `excerpt`, `read_time`, optional `image_url`). `read_time` is a plain number of minutes (for example `"7"`), without a unit; templates add "min read". The slug is the filename.
 - Projects come from `content/projects.json`, validated on load by `_validate_project()` in `app.py` (bad entries raise). Entries with a `case_study` object are the portfolio's case studies (problem / constraints / built / verification / results, plus optional metrics, delivery, `todos`); the field reference is in the README's "Adding Projects". Rules: every metric must trace to a source repo, CI run, or doc, and unknown numbers go in `todos` (rendered as a visible TODO box, so fill or remove them before a merge to main publishes them). `github_url` is only allowed with `repo_visibility: "public"`; private or local repos are described, never linked. Describe people only as their own public sites do.
 - Curated blog series are declared in `BLOG_SERIES` in `app.py`; that ordered slug list drives the series hub, per-post series navigation, home/blog discovery banner, and structured data.
 - Study-tool metadata and slugs live in `STUDY_TOOLS` in `app.py`; the index uses `templates/study.html`, while all four self-contained exercise pages share `templates/study_tool.html`. Keep tool pages free of external requests and preserve deterministic client-side feedback and the privacy scrub asserted in `tests/test_routes.py`.
@@ -50,6 +50,8 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - Site-wide custom CSS (`.blog-content`, `.gradient-text`, codehilite colors, viz styles) lives in `assets/css/tailwind.css` after the `@tailwind` directives — not in a `<style>` block in `base.html`. Page-scoped styles (e.g. resume timeline) stay in that template's `extra_head` block.
 
 ## SEO / discoverability
+
+- All unknown routes and explicit 404s use `templates/404.html` via the handler in `app.py`; preserve status 404 and its noindex tag.
 
 - The canonical production origin is `SITE_URL` in `app.py` (env-overridable, default `https://mattmccarthy.dev`). All absolute URLs (canonicals, OG tags, sitemap, feed) derive from it.
 - Per-page meta descriptions live in `PAGE_META_DESCRIPTIONS` in `app.py`, keyed by Flask endpoint — add an entry when adding a new page route. Blog posts and project pages derive descriptions from their own content (excerpt / `description` field) instead.

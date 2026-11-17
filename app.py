@@ -34,6 +34,11 @@ if not _secret_key:
         )
 app.config['SECRET_KEY'] = _secret_key
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
+
+
 @app.context_processor
 def inject_ga_measurement_id():
     return {'ga_measurement_id': os.environ.get('GA_MEASUREMENT_ID')}
