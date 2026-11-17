@@ -4,6 +4,10 @@
 
 {% block meta_description %}{{ project.description or page_description }}{% endblock %}
 
+{% block og_image %}{% if project.image_url and not project.image_url.lower().endswith('.svg') %}{{ project.image_url if project.image_url.startswith('http') else site_url ~ project.image_url }}{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block twitter_card %}{{ 'summary_large_image' if project.image_url and not project.image_url.lower().endswith('.svg') else 'summary' }}{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
 <section class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white">

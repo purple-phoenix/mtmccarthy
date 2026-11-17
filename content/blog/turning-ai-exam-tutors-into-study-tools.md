@@ -3,7 +3,7 @@ title: Turning AI-Generated Exam Tutors into Public Study Tools
 date: 2026-07-11
 category: Artificial Intelligence
 excerpt: How four one-off exam tutors became private-by-design, offline-capable interactive study pages with instant browser-based feedback.
-read_time: 7 min read
+read_time: "7"
 ---
 
 Studying with an AI tutor can be useful, but the first version of a tool is often tied to the conversation that created it. Answers may be sent back to an agent, diagrams may depend on a JavaScript CDN, and the page may contain clues about the local environment where it was built. That is fine for a private session. It is the wrong shape for a durable public resource.

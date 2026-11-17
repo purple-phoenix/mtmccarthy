@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Page not found - Matt McCarthy{% endblock %}
+{% block meta_description %}This page could not be found. Explore the blog or projects, or return home.{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-purple-50 via-white to-blue-50 py-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="text-sm font-semibold tracking-widest uppercase text-purple-600 mb-3">404</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-5">Page not found</h1>
+        <p class="text-xl text-gray-600 leading-relaxed mb-5">That address does not match a page on this site. Try one of these places instead.</p>
+        <ul class="space-y-4">
+            <li><a href="{{ url_for('index') }}" class="font-semibold text-purple-600">Home</a></li>
+            <li><a href="{{ url_for('blog') }}" class="font-semibold text-purple-600">Blog</a></li>
+            <li><a href="{{ url_for('projects') }}" class="font-semibold text-purple-600">Projects</a></li>
+        </ul>
+    </div>
+</section>
+{% endblock %}
