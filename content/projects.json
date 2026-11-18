@@ -376,7 +376,7 @@
         "npm run build validates every episode against the schema and regenerates the feed, and CI runs the same build before deploying.",
         "The feed was checked with the podba.se validator. Its only failure, byte-range support, was confirmed as a false negative: a curl range request to R2 returns 206 Partial Content.",
         "Release checklist: confirm the public audio URL returns 200 with the right Content-Type and Content-Length and a 206 for a range request, and don't push if that check fails.",
-        "A timezone regression test for episode publish dates, and 28 Python tests for the two distribution-kit scripts."
+        "A timezone regression test for episode publish dates, and 28 Python tests across the Spotify kit and cut-review scripts."
       ],
       "metrics": [
         {
@@ -403,9 +403,6 @@
       ],
       "todos": [
         "Listener or download numbers, and which podcast directories list the feed."
-      ],
-      "delivery": [
-        "A separate Claude Code skill prepares a Spotify upload kit and pauses for approval before publishing."
       ]
     }
   },
@@ -445,7 +442,7 @@
       ],
       "built": [
         "Checkout Sessions created on the server (no static Payment Links), with a pinned Stripe API version and a server-side price catalog: six fixed-price offerings, a $50 to $100 sliding scale for single sessions, and donations of at least $1.",
-        "Monthly checkout creates a subscription tagged with the installment count: two payments for the 6-week program and three for the 12-week program.",
+        "The 12-week monthly checkout creates a subscription tagged for three installment payments. The 6-week program also offers a two-payment option.",
         "A signature-verified webhook. On checkout.session.completed, it converts the subscription into a subscription schedule with a single 3-month phase and end_behavior set to cancel.",
         "Idempotent capping. A schedule counts as capped only if it is set to cancel and has a bounded phase. A schedule that exists but isn't capped yet is repaired in place, and a failed cap returns 500 so Stripe retries the event.",
         "The Stripe client is passed in, so the capping logic is a pure, testable unit."
