@@ -79,6 +79,54 @@ def test_case_study_page_renders_every_section(client, slug):
         assert f'TODO: {todo}' in text
 
 
+@pytest.mark.parametrize(('slug', 'expected'), [
+    ('jtworldteacher', (
+        'May to November 2026',
+        'documented eight-step process',
+        'The RSS feed declares audio/mp4.',
+        'pushes to main that change the site or workflow',
+        '28 Python tests for the two distribution-kit scripts',
+        '45 / 85',
+        'commits with a Claude co-author trailer as of November 18, 2026',
+        'After the episode PR merges',
+        'All 24 published episodes had written show notes as of November 18, 2026.',
+        'A separate Claude Code skill prepares a Spotify upload kit',
+    )),
+    ('muse', (
+        'More than 150 unit test methods',
+        'four commits with Claude co-author trailers',
+        '22 files and 1,615 inserted lines',
+    )),
+    ('astroai-at-most-once-publishing', (
+        'test_final_publish_approval.py (44), and test_social_package_approval.py (60)',
+        'test methods across the three publish-safety suites as of November 18, 2026',
+        '142',
+    )),
+    ('astroai-review-evidence', (
+        '31 browser test files',
+        '70 test methods',
+        '3,516',
+        'unit and integration tests passed in CI as of November 18, 2026',
+        '69',
+        'offline browser end-to-end tests passed in CI as of November 18, 2026',
+        '156 / 527',
+        'commits on main with a Claude co-author trailer as of November 18, 2026',
+    )),
+    ('astroai-chart-engine-cutover', (
+        '12 of 13 charts compared against direct Swiss Ephemeris calls',
+        '13 compared element by element, 2 DST inputs rejected by design',
+    )),
+    ('thrive-beyond-coaching', (
+        'six fixed-price offerings',
+        'two payments for the 6-week program and three for the 12-week program',
+    )),
+])
+def test_corrected_case_study_claims_are_visible(client, slug, expected):
+    text = page_text(client, f'/projects/{slug}')
+    for claim in expected:
+        assert claim in text
+
+
 @pytest.mark.parametrize('slug', [p['slug'] for p in real_projects()
                                   if p.get('repo_visibility') in ('private', 'local')])
 def test_unpublished_repos_are_never_linked(client, slug):
